@@ -264,34 +264,46 @@ class EmbeddedPlot() :
             self._y_lim_min, self._y_lim_max = self._plot.get_ylim()
 
     def _configure_plot(self) -> None:
-        """Applies all plot options to the current plot."""
-        # set plot and text colours
-        self._plot.axes.set_facecolor(config.text_color)
-        self._plot.xaxis.label.set_color(config.text_color)
-        self._plot.yaxis.label.set_color(config.text_color)
-        self._plot.set_facecolor(config.widget_bg_color)
-
-        # set labels
-        self._plot.set_title(self._title)
-        self._plot.set_xlabel(self._x_label)
-        self._plot.set_ylabel(self._y_label)
-
-        # set grid style
-        self._plot.grid(self._do_grid, color=self._grid_color)
-
-        # set axis ticks, if None, let Matplotlib decide
-        self._plot.tick_params(labelsize=12, top=True, right=True, direction='in', which='both')
-        if len(self._x_tick_vals) > 0 or len(self._x_tick_strs) > 0:
-            self._plot.set_xticks(self._x_tick_vals)
-            self._plot.set_xticklabels(self._x_tick_strs)
-        if len(self._y_tick_vals) > 0 or len(self._y_tick_strs) > 0:
-            self._plot.set_yticks(self._y_tick_vals)
-            self._plot.set_yticklabels(self._y_tick_strs)
-
+        """Applies all plot options to the current plot."""    
+        self._configure_plot_colours()
+        self._configure_plot_labels()
+        self._configure_plot_grid()
+        self._configure_plot_ticks()
         self._configure_plot_limits()
 
+    def _configure_plot_colours(self) -> None:
+        """Set the plot background and text colours"""
+        if self._plot is not None:
+            self._plot.axes.set_facecolor(config.text_color)
+            self._plot.xaxis.label.set_color(config.text_color)
+            self._plot.yaxis.label.set_color(config.text_color)
+            self._plot.set_facecolor(config.widget_bg_color)
+
+    def _configure_plot_labels(self) -> None:
+        """Set the plot and axis labels."""
+        if self._plot is not None:
+            self._plot.set_title(self._title)
+            self._plot.set_xlabel(self._x_label)
+            self._plot.set_ylabel(self._y_label)
+
+    def _configure_plot_grid(self) -> None:
+        """Set grid existence and colour."""
+        if self._plot is not None:
+            self._plot.grid(self._do_grid, color=self._grid_color)
+
+    def _configure_plot_ticks(self) -> None:
+        """Set axis ticks, if empty, let Matplotlib decide"""
+        if self._plot is not None:
+            self._plot.tick_params(labelsize=12, top=True, right=True, direction='in', which='both')
+            if len(self._x_tick_vals) > 0 or len(self._x_tick_strs) > 0:
+                self._plot.set_xticks(self._x_tick_vals)
+                self._plot.set_xticklabels(self._x_tick_strs)
+            if len(self._y_tick_vals) > 0 or len(self._y_tick_strs) > 0:
+                self._plot.set_yticks(self._y_tick_vals)
+                self._plot.set_yticklabels(self._y_tick_strs)
+
     def _configure_plot_limits(self) -> None:
-        """set x- and y-limits, if stored max <= min then let Matplotlib decide"""
+        """Set x- and y-limits, if stored max <= min then let Matplotlib decide"""
         if self._plot is not None:
             lim_factor = 0.02 # add this percent to plot exceeding x- and y-limits
             if self._x_lim_min < self._x_lim_max:
@@ -344,7 +356,7 @@ class EmbeddedPlot() :
         """Draw a temporary line during click + drag."""
         if self._do_point_selection and event.inaxes:
             x, y = self._get_nearest(self._x_pts, self._y_pts_list, event.xdata, event.ydata)
-            self._entry.delete(0, tk.END)
+            self._clear_entry_text()
             self._entry.insert(0, f'{x:.2f}, {y:.2f}')
             if len(self._x_selected_pts) % 2 == 0:
                 scat = self._plot.scatter(x, y, s=5, color='r', zorder=10)
@@ -359,7 +371,7 @@ class EmbeddedPlot() :
         """Set the first selected point in the plot surface."""
         if self._do_point_selection and event.inaxes:
             x, y = self._get_nearest(self._x_pts, self._y_pts_list, event.xdata, event.ydata)
-            self._entry.delete(0, tk.END)
+            self._clear_entry_text()
             self._entry.insert(0, f'{x:.2f}, {y:.2f}')
             self._x_selected_pts.append(x)
             self._y_selected_pts.append(y)
@@ -372,7 +384,7 @@ class EmbeddedPlot() :
             self._y_selected_pts.append(y)
             self._plot.plot(self._x_selected_pts[-2:], self._y_selected_pts[-2:], ls='--', color='r')
             self._canvas.draw()
-            self._entry.delete(0, tk.END)
+            self._clear_entry_text()
 
     def _group_list(self, old_data: list, n: int) -> list:
         """
@@ -393,13 +405,6 @@ class EmbeddedPlot() :
         """Removes current text in the Entry box."""
         self._entry.delete(0, tk.END)
 
-    def _toggle_grid(self) -> None:
-        """Toggle whether the plot should include a grid."""
-        self._do_grid = not self._do_grid
-        if self._plot is not None:
-            self._plot.grid(self._do_grid)
-            self._canvas.draw()
-
     def _toggle_raw_data(self) -> None:
         """Toggle whether the plot should display the raw data."""
         self._do_raw_data = not self._do_raw_data
@@ -411,21 +416,25 @@ class EmbeddedPlot() :
         self._do_tool_data = not self._do_tool_data
         if self._plot is not None:
             self._draw()
+
+    def _toggle_grid(self) -> None:
+        """Toggle whether the plot should include a grid."""
+        self._do_grid = not self._do_grid
+        self._configure_plot_grid()
+        self._canvas.draw()
     
     def _set_title(self) -> None:
         """Set the title of the plot. Gets input from the text box and clears after."""
         self._title = self._get_entry_text()
-        if self._plot is not None:
-            self._plot.set_title(self._title)
-            self._canvas.draw()
+        self._configure_plot_labels()
+        self._canvas.draw()
         self._clear_entry_text()
 
     def _set_x_label(self) -> None:
         """Set the x-axis label of the plot. Gets input from the text box and clears after."""
         self._x_label = self._get_entry_text()
-        if self._plot is not None:
-            self._plot.set_xlabel(self._x_label)
-            self._canvas.draw()
+        self._configure_plot_labels()
+        self._canvas.draw()
         self._clear_entry_text()
 
     def _set_x_limits(self) -> None:
@@ -450,10 +459,8 @@ class EmbeddedPlot() :
         try:
             self._x_tick_vals = [float(entry) for entry in entry_list] # raises ValueError if float(entry) fails
             self._x_tick_strs = entry_list.copy()
-            if self._plot is not None:
-                self._plot.set_xticks(self._x_tick_vals)
-                self._plot.set_xticklabels(self._x_tick_strs)
-                self._canvas.draw()
+            self._configure_plot_ticks()
+            self._canvas.draw()
         except ValueError as e:
             s = "Unable to set the x-axis ticks to the requested value. Please enter only comma-separated numeric values."
             tk.messagebox.showwarning(title=None, message=s)
@@ -462,9 +469,8 @@ class EmbeddedPlot() :
     def _set_y_label(self) -> None:
         """Set the y-axis label of the plot. Gets input from the text box and clears after."""
         self._y_label = self._get_entry_text()
-        if self._plot is not None:
-            self._plot.set_ylabel(self._y_label)
-            self._canvas.draw()
+        self._configure_plot_labels()
+        self._canvas.draw()
         self._clear_entry_text()
 
     def _set_y_limits(self) -> None:
@@ -489,10 +495,8 @@ class EmbeddedPlot() :
         try:
             self._y_tick_vals = [float(entry) for entry in entry_list] # raises ValueError if float(entry) fails
             self._y_tick_strs = entry_list.copy()
-            if self._plot is not None:
-                self._plot.set_yticks(self._y_tick_vals)
-                self._plot.set_yticklabels(self._y_tick_strs)
-                self._canvas.draw()
+            self._configure_plot_ticks()
+            self._canvas.draw()
         except ValueError as e:
             s = "Unable to set the y-axis ticks to the requested value. Please enter only comma-separated numeric values."
             tk.messagebox.showwarning(title=None, message=s)
