@@ -268,7 +268,6 @@ class EmbeddedPlot() :
         """Applies all plot options to the current plot."""    
         self._configure_plot_colours()
         self._configure_plot_labels()
-        self._configure_plot_grid()
         self._configure_plot_ticks()
         self._configure_plot_limits()
 
@@ -287,15 +286,13 @@ class EmbeddedPlot() :
             self._plot.set_xlabel(self._x_label)
             self._plot.set_ylabel(self._y_label)
 
-    def _configure_plot_grid(self) -> None:
-        """Set grid existence and colour."""
-        if self._plot is not None:
-            self._plot.grid(self._do_grid, color=self._grid_color)
-
     def _configure_plot_ticks(self) -> None:
         """Set axis ticks, if empty, let Matplotlib decide"""
         if self._plot is not None:
-            self._plot.tick_params(labelsize=12, top=True, right=True, direction='in', which='both')
+            grid_alpha = 1 if self._do_grid else 0
+            self._plot.grid(True, which='both', axis='both')
+            self._plot.tick_params(labelsize=12, top=True, right=True, direction='in', which='both', grid_alpha=grid_alpha, grid_color=self._grid_color, reset=False)
+            # TODO: fix resize on grid toggle
             if len(self._x_tick_vals) > 0 or len(self._x_tick_strs) > 0:
                 self._plot.set_xticks(self._x_tick_vals)
                 self._plot.set_xticklabels(self._x_tick_strs)
@@ -428,7 +425,7 @@ class EmbeddedPlot() :
     def _toggle_grid(self) -> None:
         """Toggle whether the plot should include a grid."""
         self._do_grid = not self._do_grid
-        self._configure_plot_grid()
+        self._configure_plot_ticks()
         self._canvas.draw()
     
     def _set_title(self) -> None:
