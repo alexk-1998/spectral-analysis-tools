@@ -70,6 +70,13 @@ class EmbeddedPlot() :
     _toggle_tool_data_button_h = 0.22
     _toggle_tool_data_button_text = 'Toggle Tool Data'
 
+    # toggle selected data button params
+    _toggle_selected_data_button_x = 0.25
+    _toggle_selected_data_button_y = 0.75
+    _toggle_selected_data_button_w = 0.24
+    _toggle_selected_data_button_h = 0.22
+    _toggle_selected_data_button_text = 'Toggle Selections'
+
     # entry box
     _entry_x = 0.50
     _entry_y = 0.00
@@ -130,8 +137,6 @@ class EmbeddedPlot() :
 
     def __init__(self, parent, x, y, w, h):
 
-        self._parent = parent
-
         # create a container for the plot
         self._frame = ttk.Frame(parent)
         self._frame.place(relx=x, rely=y, relwidth=w, relheight=h)
@@ -141,9 +146,14 @@ class EmbeddedPlot() :
         self._fig.set_facecolor(config.widget_bg_color)
         self._plot = None
 
-        # create a canvas to draw on
+        # create a frame around canvas for visual effect
         self._canvas_frame = ttk.Frame(self._frame, style='Bordered.TFrame')
-        self._canvas_frame.place(relx=self._canvas_x, rely=self._canvas_y, relwidth=self._canvas_w, relheight=self._canvas_h)
+        self._canvas_frame.place(relx=self._canvas_x, 
+                                 rely=self._canvas_y, 
+                                 relwidth=self._canvas_w, 
+                                 relheight=self._canvas_h)
+        
+        # create the canvas
         self._canvas = FigureCanvasTkAgg(self._fig, master=self._canvas_frame) 
         self._canvas.get_tk_widget().place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.98)
         self._canvas.get_tk_widget().config(bg=config.widget_bg_color)
@@ -151,13 +161,8 @@ class EmbeddedPlot() :
         self._canvas.mpl_connect('button_press_event', self._set_first_point)
         self._canvas.mpl_connect('button_release_event', self._set_final_point)
         self._canvas.mpl_connect('axes_leave_event', self._axis_leave_cb)
-        self._canvas.draw()
-
-        # logic handling flags
-        self._do_grid = True
-        self._do_raw_data = True
-        self._do_tool_data = True
-        self._do_point_selection = False
+        self._canvas.mpl_connect('figure_leave_event', self._axis_leave_cb)
+        self._canvas.draw() # draw blank canvas once
 
         # for storing data
         self._x_pts = None
@@ -165,53 +170,162 @@ class EmbeddedPlot() :
         self._y_tool_pts_list = []
         self._x_selected_pts = []
         self._y_selected_pts = []
+        self._do_point_selection = False
 
         # create frame for placing buttons
         self._button_frame = ttk.Frame(self._frame)
-        self._button_frame.place(relx=self._button_frame_x, rely=self._button_frame_y, relwidth=self._button_frame_w, relheight=self._button_frame_h)
+        self._button_frame.place(relx=self._button_frame_x, 
+                                 rely=self._button_frame_y, 
+                                 relwidth=self._button_frame_w, 
+                                 relheight=self._button_frame_h)
 
         # for requesting input
         self._entry = ttk.Entry(self._button_frame)
-        self._entry.place(relx=self._entry_x, rely=self._entry_y, relwidth=self._entry_w, relheight=self._entry_h)
+        self._entry.place(relx=self._entry_x, 
+                          rely=self._entry_y, 
+                          relwidth=self._entry_w, 
+                          relheight=self._entry_h)
 
-        # initialize buttons
-        self._update_button = ttk.Button(self._button_frame, text=self._update_button_text, command=None) # command set in parent class
-        self._update_button.place(relx=self._update_button_x, rely=self._update_button_y, relwidth=self._update_button_w, relheight=self._update_button_h)
-        self._save_button = ttk.Button(self._button_frame, text=self._save_button_text, command=None)     # command set in parent class
-        self._save_button.place(relx=self._save_button_x, rely=self._save_button_y, relwidth=self._save_button_w, relheight=self._save_button_h)
-        self._clear_button = ttk.Button(self._button_frame, text=self._clear_button_text, command=self.clear)
-        self._clear_button.place(relx=self._clear_button_x, rely=self._clear_button_y, relwidth=self._clear_button_w, relheight=self._clear_button_h)
-        self._toggle_grid_button = ttk.Button(self._button_frame, text=self._toggle_grid_button_text, command=self._toggle_grid)
-        self._toggle_grid_button.place(relx=self._toggle_grid_button_x, rely=self._toggle_grid_button_y, relwidth=self._toggle_grid_button_w, relheight=self._toggle_grid_button_h)
-        self._toggle_raw_data_button = ttk.Button(self._button_frame, text=self._toggle_raw_data_button_text, command=self._toggle_raw_data)
-        self._toggle_raw_data_button.place(relx=self._toggle_raw_data_button_x, rely=self._toggle_raw_data_button_y, relwidth=self._toggle_raw_data_button_w, relheight=self._toggle_raw_data_button_h)
-        self._toggle_tool_data_button = ttk.Button(self._button_frame, text=self._toggle_tool_data_button_text, command=self._toggle_tool_data)
-        self._toggle_tool_data_button.place(relx=self._toggle_tool_data_button_x, rely=self._toggle_tool_data_button_y, relwidth=self._toggle_tool_data_button_w, relheight=self._toggle_tool_data_button_h)
+        # initialize update button, set command in App class
+        self._update_button = ttk.Button(self._button_frame, 
+                                         text=self._update_button_text, 
+                                         command=None)
+        self._update_button.place(relx=self._update_button_x, 
+                                  rely=self._update_button_y, 
+                                  relwidth=self._update_button_w, 
+                                  relheight=self._update_button_h)
+        
+        # initialize save button, set command in App class
+        self._save_button = ttk.Button(self._button_frame, 
+                                       text=self._save_button_text, 
+                                       command=None)
+        self._save_button.place(relx=self._save_button_x, 
+                                rely=self._save_button_y, 
+                                relwidth=self._save_button_w, 
+                                relheight=self._save_button_h)
+        
+        # initialize clear button
+        self._clear_button = ttk.Button(self._button_frame, 
+                                        text=self._clear_button_text, 
+                                        command=self.clear)
+        self._clear_button.place(relx=self._clear_button_x,
+                                 rely=self._clear_button_y, 
+                                 relwidth=self._clear_button_w, 
+                                 relheight=self._clear_button_h)
+        
+        # initialize grid toggle button
+        self._do_grid = True
+        self._toggle_grid_button = ttk.Button(self._button_frame, 
+                                              text=self._toggle_grid_button_text, 
+                                              command=self._toggle_grid)
+        self._toggle_grid_button.place(relx=self._toggle_grid_button_x, 
+                                       rely=self._toggle_grid_button_y, 
+                                       relwidth=self._toggle_grid_button_w, 
+                                       relheight=self._toggle_grid_button_h)
+        
+        # initialize raw data toggle button
+        self._do_raw_data = True
+        self._toggle_raw_data_button = ttk.Button(self._button_frame, 
+                                                  text=self._toggle_raw_data_button_text, 
+                                                  command=self._toggle_raw_data)
+        self._toggle_raw_data_button.place(relx=self._toggle_raw_data_button_x,
+                                           rely=self._toggle_raw_data_button_y, 
+                                           relwidth=self._toggle_raw_data_button_w, 
+                                           relheight=self._toggle_raw_data_button_h)
+        
+        # initialize tool data toggle button
+        self._do_tool_data = True
+        self._toggle_tool_data_button = ttk.Button(self._button_frame, 
+                                                   text=self._toggle_tool_data_button_text, 
+                                                   command=self._toggle_tool_data)
+        self._toggle_tool_data_button.place(relx=self._toggle_tool_data_button_x,
+                                            rely=self._toggle_tool_data_button_y,
+                                            relwidth=self._toggle_tool_data_button_w,
+                                            relheight=self._toggle_tool_data_button_h)
+
+        # initialize selected data toggle button
+        self._do_selected_data = True
+        self._toggle_selected_data_button = ttk.Button(self._button_frame, 
+                                                       text=self._toggle_selected_data_button_text, 
+                                                       command=self._toggle_selected_data)
+        self._toggle_selected_data_button.place(relx=self._toggle_selected_data_button_x, 
+                                                rely=self._toggle_selected_data_button_y, 
+                                                relwidth=self._toggle_selected_data_button_w, 
+                                                relheight=self._toggle_selected_data_button_h)
+        
+        # initialize title set button
         self._title = ''
-        self._title_button = ttk.Button(self._button_frame, text=self._title_button_text, command=self._set_title)
-        self._title_button.place(relx=self._title_button_x, rely=self._title_button_y, relwidth=self._title_button_w, relheight=self._title_button_h)
+        self._title_button = ttk.Button(self._button_frame, 
+                                        text=self._title_button_text, 
+                                        command=self._set_title)
+        self._title_button.place(relx=self._title_button_x, 
+                                 rely=self._title_button_y, 
+                                 relwidth=self._title_button_w, 
+                                 relheight=self._title_button_h)
+        
+        # initialize x-label set button
         self._x_label = ''
-        self._x_label_button = ttk.Button(self._button_frame, text=self._x_label_button_text, command=self._set_x_label)
-        self._x_label_button.place(relx=self._x_label_button_x, rely=self._x_label_button_y, relwidth=self._x_label_button_w, relheight=self._x_label_button_h)
+        self._x_label_button = ttk.Button(self._button_frame, 
+                                          text=self._x_label_button_text, 
+                                          command=self._set_x_label)
+        self._x_label_button.place(relx=self._x_label_button_x, 
+                                   rely=self._x_label_button_y, 
+                                   relwidth=self._x_label_button_w, 
+                                   relheight=self._x_label_button_h)
+        
+        # initialize x-limit set button
         self._x_lim_min = 0
         self._x_lim_max = 0
-        self._x_lim_button = ttk.Button(self._button_frame, text=self._x_lim_button_text, command=self._set_x_limits)
-        self._x_lim_button.place(relx=self._x_lim_button_x, rely=self._x_lim_button_y, relwidth=self._x_lim_button_w, relheight=self._x_lim_button_h)
+        self._x_lim_button = ttk.Button(self._button_frame, 
+                                        text=self._x_lim_button_text, 
+                                        command=self._set_x_limits)
+        self._x_lim_button.place(relx=self._x_lim_button_x, 
+                                 rely=self._x_lim_button_y, 
+                                 relwidth=self._x_lim_button_w, 
+                                 relheight=self._x_lim_button_h)
+       
+        # initialize x-tick set button
         self._x_tick_vals = []
         self._x_tick_strs = []
-        self._x_tick_button = ttk.Button(self._button_frame, text=self._x_tick_button_text, command=self._set_x_ticks)
-        self._x_tick_button.place(relx=self._x_tick_button_x, rely=self._x_tick_button_y, relwidth=self._x_tick_button_w, relheight=self._x_tick_button_h)
+        self._x_tick_button = ttk.Button(self._button_frame,
+                                         text=self._x_tick_button_text, 
+                                         command=self._set_x_ticks)
+        self._x_tick_button.place(relx=self._x_tick_button_x, 
+                                  rely=self._x_tick_button_y, 
+                                  relwidth=self._x_tick_button_w, 
+                                  relheight=self._x_tick_button_h)
+        
+        # initialize y-label set button
         self._y_label = ''
-        self._y_label_button = ttk.Button(self._button_frame, text=self._y_label_button_text, command=self._set_y_label)
-        self._y_label_button.place(relx=self._y_label_button_x, rely=self._y_label_button_y, relwidth=self._y_label_button_w, relheight=self._y_label_button_h)
+        self._y_label_button = ttk.Button(self._button_frame, 
+                                          text=self._y_label_button_text, 
+                                          command=self._set_y_label)
+        self._y_label_button.place(relx=self._y_label_button_x, 
+                                   rely=self._y_label_button_y, 
+                                   relwidth=self._y_label_button_w, 
+                                   relheight=self._y_label_button_h)
+        
+        # initialize x-limit set button
         self._y_lim_min = 0
         self._y_lim_max = 0
-        self._y_lim_button = ttk.Button(self._button_frame, text=self._y_lim_button_text, command=self._set_y_limits)
-        self._y_lim_button.place(relx=self._y_lim_button_x, rely=self._y_lim_button_y, relwidth=self._y_lim_button_w, relheight=self._y_lim_button_h)
+        self._y_lim_button = ttk.Button(self._button_frame, 
+                                        text=self._y_lim_button_text, 
+                                        command=self._set_y_limits)
+        self._y_lim_button.place(relx=self._y_lim_button_x, 
+                                 rely=self._y_lim_button_y, 
+                                 relwidth=self._y_lim_button_w, 
+                                 relheight=self._y_lim_button_h)
+        
+        # initialize x-tick set button
         self._y_tick_vals = []
         self._y_tick_strs = []
-        self._y_tick_button = ttk.Button(self._button_frame, text=self._y_tick_button_text, command=self._set_y_ticks)
-        self._y_tick_button.place(relx=self._y_tick_button_x, rely=self._y_tick_button_y, relwidth=self._y_tick_button_w, relheight=self._y_tick_button_h)
+        self._y_tick_button = ttk.Button(self._button_frame,
+                                         text=self._y_tick_button_text, 
+                                         command=self._set_y_ticks)
+        self._y_tick_button.place(relx=self._y_tick_button_x, 
+                                  rely=self._y_tick_button_y, 
+                                  relwidth=self._y_tick_button_w, 
+                                  relheight=self._y_tick_button_h)
 
     def draw(self, x, y_list, y_tool_pts_list=None) -> None:
         """Clears the existing plot and draws passed data."""
@@ -243,26 +357,33 @@ class EmbeddedPlot() :
                 length = min(len(self._x_pts), len(y))
                 self._plot.plot(self._x_pts[:length], y[:length])
         # plot the selection data
-        if len(self._x_selected_pts) > 0 and len(self._x_selected_pts) == len(self._y_selected_pts):
-            x_list = self._group_list(self._x_selected_pts.copy(), 2)
-            y_list = self._group_list(self._y_selected_pts.copy(), 2)
-            for x, y in zip(x_list, y_list):
-                self._plot.plot(x, y, ls='--', color='r')
+        if self._do_selected_data:
+            if len(self._x_selected_pts) > 0 and len(self._x_selected_pts) == len(self._y_selected_pts):
+                x_list = self._group_list(self._x_selected_pts.copy(), 2)
+                y_list = self._group_list(self._y_selected_pts.copy(), 2)
+                for x, y in zip(x_list, y_list):
+                    self._plot.plot(x, y, ls='--', color='r')
         self._canvas.draw()
 
         # update labels if we didn't manually set them
         if len(self._x_tick_vals) == 0 or len(self._x_tick_strs) == 0:
             self._x_tick_vals = self._plot.get_xticks()
             self._x_tick_strs = self._plot.get_xticklabels()
+            #self._x_lim_min = self._x_tick_vals[0]
+            #self._x_lim_max = self._x_tick_vals[-1]
+            #self._plot.set_xlim(self._x_lim_min, self._x_lim_max)
         if len(self._y_tick_vals) == 0 or len(self._y_tick_strs) == 0:
             self._y_tick_vals = self._plot.get_yticks()
             self._y_tick_strs = self._plot.get_yticklabels()
 
-        # update limits if we didn't manually set them
         if self._x_lim_min >= self._x_lim_max:
             self._x_lim_min, self._x_lim_max = self._plot.get_xlim()
         if self._y_lim_min >= self._y_lim_max:
             self._y_lim_min, self._y_lim_max = self._plot.get_ylim()
+        
+            #self._y_lim_min = self._y_tick_vals[0]
+            #self._y_lim_max = self._y_tick_vals[-1]
+            #self._plot.set_ylim(self._y_lim_min, self._y_lim_max)
 
     def _configure_plot(self) -> None:
         """Applies all plot options to the current plot."""    
@@ -291,8 +412,9 @@ class EmbeddedPlot() :
         if self._plot is not None:
             grid_alpha = 1 if self._do_grid else 0
             self._plot.grid(True, which='both', axis='both')
-            self._plot.tick_params(labelsize=12, top=True, right=True, direction='in', which='both', grid_alpha=grid_alpha, grid_color=self._grid_color, reset=False)
-            # TODO: fix resize on grid toggle
+            self._plot.tick_params(labelsize=12, top=True, right=True, 
+                                   direction='in', which='both', grid_alpha=grid_alpha, 
+                                   grid_color=self._grid_color)
             if len(self._x_tick_vals) > 0 or len(self._x_tick_strs) > 0:
                 self._plot.set_xticks(self._x_tick_vals)
                 self._plot.set_xticklabels(self._x_tick_strs)
@@ -303,15 +425,10 @@ class EmbeddedPlot() :
     def _configure_plot_limits(self) -> None:
         """Set x- and y-limits, if stored max <= min then let Matplotlib decide"""
         if self._plot is not None:
-            lim_factor = 0.00 # add this percent to plot exceeding x- and y-limits
             if self._x_lim_min < self._x_lim_max:
-                x_span = self._x_lim_max - self._x_lim_min
-                self._plot.set_xlim(self._x_lim_min - lim_factor * x_span, 
-                                    self._x_lim_max + lim_factor * x_span)
+                self._plot.set_xlim(self._x_lim_min, self._x_lim_max)
             if self._y_lim_min < self._y_lim_max:
-                y_span = self._y_lim_max - self._y_lim_min
-                self._plot.set_ylim(self._y_lim_min - lim_factor * y_span, 
-                                    self._y_lim_max + lim_factor * y_span)
+                self._plot.set_ylim(self._y_lim_min, self._y_lim_max)
 
     def clear(self) -> None:
         """Clears the existing plot and draws a blank canvas."""
@@ -328,6 +445,10 @@ class EmbeddedPlot() :
         self._x_selected_pts = []
         self._y_selected_pts = []
 
+    def clear_selected_points(self) -> None:
+        self._x_selected_pts = []
+        self._y_selected_pts = []
+
     def save(self, filename: str) -> None:
         """Saves the existing plot."""
         self._fig.savefig(filename, bbox_inches='tight')
@@ -337,11 +458,6 @@ class EmbeddedPlot() :
         x_list = self._group_list(self._x_selected_pts.copy(), 2)
         y_list = self._group_list(self._y_selected_pts.copy(), 2)
         return x_list, y_list
-
-    def clear_selected_points(self) -> None:
-        """Set the selected points to empty lists."""
-        self._x_selected_pts = []
-        self._y_selected_pts = []
 
     def enable_point_selection(self, do_point_selection: bool) -> None:
         """Enable/Disable point selection."""
@@ -422,6 +538,12 @@ class EmbeddedPlot() :
         if self._plot is not None:
             self._draw()
 
+    def _toggle_selected_data(self) -> None:
+        """Toggle whether the plot should display the selected data."""
+        self._do_selected_data = not self._do_selected_data
+        if self._plot is not None:
+            self._draw()
+
     def _toggle_grid(self) -> None:
         """Toggle whether the plot should include a grid."""
         self._do_grid = not self._do_grid
@@ -455,7 +577,8 @@ class EmbeddedPlot() :
         else:
             entry_list = entry.replace(' ', '').split(',') # remove whitespace, separate on commas
             try:
-                self._x_lim_min, self._x_lim_max = float(entry_list[0]), float(entry_list[1])  # raises ValueError if float(entry) fails, IndexError if wrong length
+                # raises ValueError if float(entry) fails, IndexError if wrong length
+                self._x_lim_min, self._x_lim_max = float(entry_list[0]), float(entry_list[1])
                 if self._x_lim_min > self._x_lim_max:
                     self._x_lim_min, self._x_lim_max = self._x_lim_max, self._x_lim_min
                 self._configure_plot_limits()
@@ -505,7 +628,8 @@ class EmbeddedPlot() :
         else:
             entry_list = entry.replace(' ', '').split(',') # remove whitespace, separate on commas
             try:
-                self._y_lim_min, self._y_lim_max = float(entry_list[0]), float(entry_list[1])  # raises ValueError if float(entry) fails, IndexError if wrong length
+                # raises ValueError if float(entry) fails, IndexError if wrong length
+                self._y_lim_min, self._y_lim_max = float(entry_list[0]), float(entry_list[1])
                 if self._y_lim_min > self._y_lim_max:
                     self._y_lim_min, self._y_lim_max = self._y_lim_max, self._y_lim_min
                 self._configure_plot_limits()
@@ -569,4 +693,3 @@ class EmbeddedPlot() :
                         nearest_y = y[index]
                         min_radius = min_radius_temp
         return nearest_x, nearest_y
-

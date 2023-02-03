@@ -104,7 +104,10 @@ class EmbeddedTable() :
 
         # create the canvas frame
         self._canvas_frame = ttk.Frame(self._frame, style='Bordered.TFrame')
-        self._canvas_frame.place(relx=self._canvas_frame_x, rely=self._canvas_frame_y, relwidth=self._canvas_frame_w, relheight=self._canvas_frame_h)
+        self._canvas_frame.place(relx=self._canvas_frame_x, 
+                                 rely=self._canvas_frame_y, 
+                                 relwidth=self._canvas_frame_w, 
+                                 relheight=self._canvas_frame_h)
         self._canvas_frame.bind("<MouseWheel>", self._canvas_v_scroll)
 
         # set the font and measure for table spacing
@@ -113,23 +116,51 @@ class EmbeddedTable() :
         self._column_max_char = 10
 
         # create a vertical scrollbar
-        self._v_scrollbar = ttk.Scrollbar(self._frame, orient=tk.VERTICAL, command=self._scrollbar_v_scroll)
-        self._v_scrollbar.place(relx=self._v_scrollbar_x, rely=self._v_scrollbar_y, relwidth=self._v_scrollbar_w, relheight=self._v_scrollbar_h)
+        self._v_scrollbar = ttk.Scrollbar(self._frame, 
+                                          orient=tk.VERTICAL, 
+                                          command=self._scrollbar_v_scroll)
+        self._v_scrollbar.place(relx=self._v_scrollbar_x, 
+                                rely=self._v_scrollbar_y, 
+                                relwidth=self._v_scrollbar_w, 
+                                relheight=self._v_scrollbar_h)
         self._v_scrollbar.bind("<ButtonPress-1>", self._scrollbar_v_click)
+
         # create a horizontal scrollbar
-        self._h_scrollbar = ttk.Scrollbar(self._frame, orient=tk.HORIZONTAL, command=self._scrollbar_h_scroll)
-        self._h_scrollbar.place(relx=self._h_scrollbar_x, rely=self._h_scrollbar_y, relwidth=self._h_scrollbar_w, relheight=self._h_scrollbar_h)
+        self._h_scrollbar = ttk.Scrollbar(self._frame, 
+                                          orient=tk.HORIZONTAL, 
+                                          command=self._scrollbar_h_scroll)
+        self._h_scrollbar.place(relx=self._h_scrollbar_x, 
+                                rely=self._h_scrollbar_y, 
+                                relwidth=self._h_scrollbar_w, 
+                                relheight=self._h_scrollbar_h)
         self._h_scrollbar.bind("<ButtonPress-1>", self._scrollbar_h_click)
 
         # listbox for showing active x-data
-        self._x_listbox = tk.Listbox(self._frame, justify=tk.CENTER, selectmode=tk.SINGLE, height=self._x_listbox_rows, activestyle=tk.NONE, font=self._font)
-        self._x_listbox.place(relx=self._x_listbox_x, rely=self._x_listbox_y, relwidth=self._x_listbox_w, anchor=tk.N)
-        self._x_listbox.config(background=config.widget_bg_color, foreground=config.text_color, relief=config.relief, borderwidth=config.border_width)
+        self._x_listbox = tk.Listbox(self._frame, justify=tk.CENTER, 
+                                     selectmode=tk.SINGLE, height=self._x_listbox_rows, 
+                                     activestyle=tk.NONE, font=self._font)
+        self._x_listbox.place(relx=self._x_listbox_x, 
+                              rely=self._x_listbox_y, 
+                              relwidth=self._x_listbox_w, 
+                              anchor=tk.N)
+        self._x_listbox.config(background=config.widget_bg_color, 
+                               foreground=config.text_color, 
+                               relief=config.relief, 
+                               borderwidth=config.border_width)
         self._x_listbox.insert(0, self._x_listbox_default_string)
+        
         # listbox for showing active y-data
-        self._y_listbox = tk.Listbox(self._frame, justify=tk.CENTER, selectmode=tk.SINGLE, height=self._y_listbox_rows, activestyle=tk.NONE, font=self._font)
-        self._y_listbox.place(relx=self._y_listbox_x, rely=self._y_listbox_y, relwidth=self._y_listbox_w, anchor=tk.N)
-        self._y_listbox.config(background=config.widget_bg_color, foreground=config.text_color, relief=config.relief, borderwidth=config.border_width)
+        self._y_listbox = tk.Listbox(self._frame, justify=tk.CENTER, 
+                                     selectmode=tk.SINGLE, height=self._y_listbox_rows, 
+                                     activestyle=tk.NONE, font=self._font)
+        self._y_listbox.place(relx=self._y_listbox_x, 
+                              rely=self._y_listbox_y, 
+                              relwidth=self._y_listbox_w, 
+                              anchor=tk.N)
+        self._y_listbox.config(background=config.widget_bg_color, 
+                               foreground=config.text_color, 
+                               relief=config.relief, 
+                               borderwidth=config.border_width)
         self._y_listbox.insert(0, self._y_listbox_default_string)
         self._y_listbox.bind("<ButtonRelease-1>", self._set_active_y)
         self._y_listbox.bind("<Up>", self._listbox_key_up)
@@ -146,15 +177,41 @@ class EmbeddedTable() :
         self._n_req_indices = 3
         self._active_y_index = -1
 
-        # initialize all buttons
-        self._x_set_button = ttk.Button(self._frame, text=self._x_set_button_text, command=self._set_x)
-        self._x_set_button.place(relx=self._x_set_button_x, rely=self._x_set_button_y, relwidth=self._x_set_button_w, relheight=self._x_set_button_h)
-        self._x_reset_button = ttk.Button(self._frame, text=self._x_reset_button_text, command=self._reset_x)
-        self._x_reset_button.place(relx=self._x_reset_button_x, rely=self._x_reset_button_y, relwidth=self._x_reset_button_w, relheight=self._x_reset_button_h)
-        self._y_add_button = ttk.Button(self._frame, text=self._y_add_button_text, command=self._add_y)
-        self._y_add_button.place(relx=self._y_add_button_x, rely=self._y_add_button_y, relwidth=self._y_add_button_w, relheight=self._y_add_button_h)
-        self._y_delete_button = ttk.Button(self._frame, text=self._y_delete_button_text, command=self._delete_y)
-        self._y_delete_button.place(relx=self._y_delete_button_x, rely=self._y_delete_button_y, relwidth=self._y_delete_button_w, relheight=self._y_delete_button_h) 
+        # initialize set x-data button
+        self._x_set_button = ttk.Button(self._frame, 
+                                        text=self._x_set_button_text, 
+                                        command=self._set_x)
+        self._x_set_button.place(relx=self._x_set_button_x, 
+                                 rely=self._x_set_button_y, 
+                                 relwidth=self._x_set_button_w, 
+                                 relheight=self._x_set_button_h)
+
+        # initialize reset x-data button
+        self._x_reset_button = ttk.Button(self._frame, 
+                                          text=self._x_reset_button_text, 
+                                          command=self._reset_x)
+        self._x_reset_button.place(relx=self._x_reset_button_x, 
+                                   rely=self._x_reset_button_y, 
+                                   relwidth=self._x_reset_button_w,
+                                   relheight=self._x_reset_button_h)
+        
+        # initialize set y-data button
+        self._y_add_button = ttk.Button(self._frame, 
+                                        text=self._y_add_button_text, 
+                                        command=self._add_y)
+        self._y_add_button.place(relx=self._y_add_button_x, 
+                                 rely=self._y_add_button_y, 
+                                 relwidth=self._y_add_button_w, 
+                                 relheight=self._y_add_button_h)
+        
+        # initialize reset y-data button
+        self._y_delete_button = ttk.Button(self._frame, 
+                                           text=self._y_delete_button_text, 
+                                           command=self._delete_y)
+        self._y_delete_button.place(relx=self._y_delete_button_x, 
+                                    rely=self._y_delete_button_y, 
+                                    relwidth=self._y_delete_button_w, 
+                                    relheight=self._y_delete_button_h) 
 
     def open(self, filename: str) -> None:
         """Open the file at the passed file path."""
@@ -208,20 +265,26 @@ class EmbeddedTable() :
         return y_vals
 
     def _scrollbar_h_scroll(self, *args) -> None:
-        """Callback for horizontal scrollbar.
-        Moves the canvas with the scrollbar."""
+        """
+        Callback for horizontal scrollbar.
+        Moves the canvas with the scrollbar.
+        """
         if self._canvas is not None:
             self._canvas.xview_moveto(args[1])
 
     def _scrollbar_v_scroll(self, *args) :
-        """Callback for vertical scrollbar.
-        Moves the canvas with the scrollbar."""
+        """
+        Callback for vertical scrollbar.
+        Moves the canvas with the scrollbar.
+        """
         if self._canvas is not None:
             self._canvas.yview_moveto(args[1])
 
     def _scrollbar_h_click(self, event) :
-        """Callback for horizontal scrollbar click.
-        Moves the scrollbar and canvas according to cursor position."""
+        """
+        Callback for horizontal scrollbar click.
+        Moves the scrollbar and canvas according to cursor position.
+        """
         if self._canvas is not None:
             # get scrollbar thumb position and width relative to canvas
             thumb_width = event.widget.winfo_width() * self._canvas.winfo_width() / self._canvas.bbox(tk.ALL)[2]
@@ -231,8 +294,10 @@ class EmbeddedTable() :
             self._canvas.update_idletasks()
 
     def _scrollbar_v_click(self, event) :
-        """Callback for vertical scrollbar click.
-        Moves the scrollbar and canvas according to cursor position."""
+        """
+        Callback for vertical scrollbar click.
+        Moves the scrollbar and canvas according to cursor position.
+        """
         if self._canvas is not None:
             # get scrollbar bar position and height relative to canvas
             thumb_height = event.widget.winfo_height() * self._canvas.winfo_height() / self._canvas.bbox(tk.ALL)[3]
@@ -301,7 +366,9 @@ class EmbeddedTable() :
                 self._table_columns.append(column)
             # configure the canvas
             self._canvas.place(relx=self._canvas_x, rely=self._canvas_y, relwidth=self._canvas_w, relheight=self._canvas_h)
-            self._canvas.config(yscrollcommand=self._v_scrollbar.set, xscrollcommand=self._h_scrollbar.set, scrollregion=self._canvas.bbox(tk.ALL))
+            self._canvas.config(yscrollcommand=self._v_scrollbar.set, 
+                                xscrollcommand=self._h_scrollbar.set, 
+                                scrollregion=self._canvas.bbox(tk.ALL))
             self._canvas.xview_moveto(0.0)
             self._canvas.yview_moveto(0.0)
             # force UI update
@@ -311,7 +378,8 @@ class EmbeddedTable() :
                 self._df.iloc[:, i] = pd.to_numeric(self._df.iloc[:, i], errors='coerce')
 
     def _get_table_selection(self, event) -> None:
-        """Get the actively selected column and column indices from the table.
+        """
+        Get the actively selected column and column indices from the table.
         Returns a tuple where the first element is the column index and the second
         is a list of all active selections from within the column. The method will
         do nothing if the selected data contains non-numeric entries.
@@ -357,9 +425,7 @@ class EmbeddedTable() :
         self._active_y_index = list(event.widget.curselection())[0]
 
     def _set_x(self, event=None) -> None:
-        """
-        Get the active table selections and assign to the active x-data.
-        """
+        """Get the active table selections and assign to the active x-data."""
         if self._validate_active_data():
             # update the stored x-indices
             self._indices['x'] = self._active_indices.copy()
@@ -372,9 +438,7 @@ class EmbeddedTable() :
             self._x_listbox.insert(0, s)
 
     def _add_y(self, event=None) -> None:
-        """
-        Get the active table selections and append to the active y-data.
-        """
+        """Get the active table selections and append to the active y-data."""
         if self._validate_active_data():
             # update the stored y-indices
             if 'y' in self._indices.keys():

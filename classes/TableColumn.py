@@ -13,7 +13,11 @@ class TableColumn(tkListbox):
 
     def __init__(self, parent, index, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
-        self.config(background=config.widget_bg_color, foreground=config.text_color, borderwidth=0, highlightthickness=0, xscrollcommand=None)
+        self.config(background=config.widget_bg_color, 
+                    foreground=config.text_color, 
+                    borderwidth=0,
+                    highlightthickness=0,
+                    xscrollcommand=None)
         self._index = index
 
     def get_index(self):
