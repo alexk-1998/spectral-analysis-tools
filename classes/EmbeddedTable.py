@@ -5,6 +5,8 @@
 # description: handles table operations for the application.
 # TODO: implement different display styles
 
+import platform
+
 import tkinter as tk
 import tkinter.ttk as ttk
 
@@ -97,6 +99,11 @@ class EmbeddedTable() :
     _y_listbox_default_string = 'no data'
 
     def __init__(self, parent, x, y, w, h):
+
+        # determine OS for proper scrolling on MacOS
+        self._scroll_div = 120
+        if platform.system() == 'Darwin':
+            self._scroll_div = 1
 
         # create a container for the table and associated scrollbars
         self._frame = ttk.Frame(parent)
@@ -309,7 +316,7 @@ class EmbeddedTable() :
     def _canvas_v_scroll(self, event) -> None:
         """Callback for scrolling on the canvas containing tabular data."""
         if self._canvas is not None:
-            self._canvas.yview_scroll(int(-event.delta/120), tk.UNITS)
+            self._canvas.yview_scroll(int(-event.delta/self._scroll_div), tk.UNITS)
 
     def _listbox_key_up(self, event) -> None:
         """Callback for listbox parsing with the up arrow key."""

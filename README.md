@@ -38,6 +38,4 @@ Currently, band analytics are sent to stdout and may not be visible by the user.
 
 Screen-tearing may be present when scrolling the GUI table on Windows platforms, this is being investigated.
 
-Mac users may be unable to scroll the GUI table with their trackpad, this will be fixed in future updates.
-
 The plot limits will not automatically update to ensure continuum-removed curves are in view, the user should click Set X Limits, X Ticks, and the same for Y to ensure the curves are in view. This will be updated in the future.
