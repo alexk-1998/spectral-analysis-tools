@@ -30,6 +30,8 @@ Plot contents may be saved with the Save button. If a user wants to produce an i
 
 # Known Issues / Future Improvements
 
+Exceptions may be thrown when performing continuum removal on multiple curves.
+
 Band analytics are sent to stdout and may not be visible by the user. Analytics will be integrated into the GUI in the future.
 
 Screen-tearing may be present when scrolling the GUI table on Windows platforms.
