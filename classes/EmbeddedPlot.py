@@ -4,7 +4,6 @@
 #
 # description: handles plot operations for the application.
 # Exposes draw() and clear() methods for updating through the GUI.
-# TODO: implement different plotting styles (scatter, linestyles, colours, etc.)
 
 import tkinter as tk
 import tkinter.ttk as ttk
@@ -315,6 +314,7 @@ class EmbeddedPlot() :
         valid_x = x is not None
         valid_y = len(y_list) > 0
         if valid_x and valid_y:
+            self.clear(clear_selections=False)
             self._x_pts = x
             self._y_pts_list = y_list
             if y_tool_pts_list is not None:
@@ -406,24 +406,36 @@ class EmbeddedPlot() :
             if self._y_lim_min < self._y_lim_max:
                 self._plot.set_ylim(self._y_lim_min, self._y_lim_max)
 
-    def clear(self) -> None:
+    def clear(self, clear_selections=True) -> None:
         """Clears the existing plot and draws a blank canvas."""
         if self._plot is not None:
-            self._fig.clear()
             self._plot = self._plot.clear()
-            self._clear_data()
+            self._fig.clear()
+            self._clear_data(clear_selections)
+            self._clear_configs()
             self._canvas.draw()
 
-    def _clear_data(self) -> None:
+    def _clear_data(self, clear_selections=True) -> None:
         self._x_pts = None
         self._y_pts_list = []
         self._y_tool_pts_list = []
-        self._x_selected_pts = []
-        self._y_selected_pts = []
+        if clear_selections:
+            self._x_selected_pts = []
+            self._y_selected_pts = []
 
-    def clear_selected_points(self) -> None:
-        self._x_selected_pts = []
-        self._y_selected_pts = []
+    def _clear_configs(self) -> None:
+        """Returns plot configurations to their default states."""
+        self._do_point_selection = False
+        self._do_raw_data = True
+        self._do_tool_data = True
+        self._do_selected_data = True
+        self._title = ''
+        self._x_label = ''
+        self._x_lim_min = 0
+        self._x_lim_max = 0
+        self._y_label = ''
+        self._y_lim_min = 0
+        self._y_lim_max = 0
 
     def save(self, filename: str) -> None:
         """Saves the existing plot."""
@@ -438,8 +450,10 @@ class EmbeddedPlot() :
     def enable_point_selection(self, do_point_selection: bool) -> None:
         """Enable/Disable point selection."""
         self._do_point_selection = do_point_selection
-        if not self._do_raw_data:
-            self._do_raw_data = True
+        # remove any existing selections and re-draw
+        if self._do_point_selection:
+            self._x_selected_pts = []
+            self._y_selected_pts = []
             self._draw()
 
     def _axis_leave_cb(self, event) -> None:

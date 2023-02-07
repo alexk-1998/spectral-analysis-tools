@@ -118,7 +118,6 @@ class App(tk.Tk):
 
     def _straight_line_continuum_removal_cb(self) -> None:
         """Perform the continuum removal calculations."""
-        self._plot.clear_selected_points()
         self._plot.enable_point_selection(True)
         self._active_tool = self.STRAIGHT_LINE_CONTINUUM
 
