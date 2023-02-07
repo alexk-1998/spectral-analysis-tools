@@ -8,6 +8,9 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
+import numpy as np
+
+import matplotlib.cm as cm
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
@@ -329,16 +332,25 @@ class EmbeddedPlot() :
         self._fig.clear()
         self._plot = self._fig.add_subplot(111)
         self._configure_plot()
+
+        # manually choose colours for consistency in toggling
+        n_colours = len(self._y_pts_list) + len(self._y_tool_pts_list)
+        colours = iter(cm.rainbow(np.linspace(0, 1, n_colours)))
+
         # plot the raw data
-        if self._do_raw_data:
-            for y in self._y_pts_list:
+        for y in self._y_pts_list:
+            c = next(colours)
+            if self._do_raw_data:
                 length = min(len(self._x_pts), len(y))
-                self._plot.plot(self._x_pts[:length], y[:length])
+                self._plot.plot(self._x_pts[:length], y[:length], c=c)
+    
         # plot the analyzed data
-        if self._do_tool_data:
-            for y in self._y_tool_pts_list:
+        for y in self._y_tool_pts_list:
+            c = next(colours)
+            if self._do_tool_data:
                 length = min(len(self._x_pts), len(y))
-                self._plot.plot(self._x_pts[:length], y[:length])
+                self._plot.plot(self._x_pts[:length], y[:length], c=c)
+
         # plot the selection data
         if self._do_selected_data:
             if len(self._x_selected_pts) > 0 and len(self._x_selected_pts) == len(self._y_selected_pts):

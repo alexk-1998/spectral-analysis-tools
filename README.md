@@ -30,8 +30,6 @@ Plot contents may be saved with the Save button. If a user wants to produce an i
 
 # Known Issues / Future Improvements
 
-If a user toggles off raw-data while tool-data is shown, the tool-data curve colours will change between toggle states.
-
 Band analytics are sent to stdout and may not be visible by the user. Analytics will be integrated into the GUI in the future.
 
 Screen-tearing may be present when scrolling the GUI table on Windows platforms.
