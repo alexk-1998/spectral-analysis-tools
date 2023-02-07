@@ -37,5 +37,3 @@ If a user toggles off raw-data while tool-data is shown, the tool-data curve col
 Currently, band analytics are sent to stdout and may not be visible by the user. Analytics will be integrated into the GUI in the future.
 
 Screen-tearing may be present when scrolling the GUI table on Windows platforms, this is being investigated.
-
-The plot limits will not automatically update to ensure continuum-removed curves are in view, the user should click Set X Limits, X Ticks, and the same for Y to ensure the curves are in view. This will be updated in the future.

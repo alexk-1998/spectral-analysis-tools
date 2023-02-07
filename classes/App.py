@@ -101,13 +101,6 @@ class App(tk.Tk):
         if filename != '' and filename.find('.') != 0: # non-empty name with filename length >= 1, not including extension
             self._plot.save(filename)
 
-    def _save_data(self) -> None:
-        """See EmbeddedTable.save()."""
-        allowed_types = [('Excel', '*.xlsx'), ('csv', '*.csv'), ('txt', '*.txt')]
-        filename = tk.filedialog.asksaveasfilename(filetypes=allowed_types, defaultextension=allowed_types)
-        if filename != '' and filename.find('.') != 0: # non-empty name with filename length >= 1, not including extension
-            self._table.save(filename)
-
     def _clear_plot(self) -> None:
         """See EmbeddedPlot.clear()."""
         self._plot.clear()
@@ -115,6 +108,7 @@ class App(tk.Tk):
     def _clear_data(self) -> None:
         """See EmbeddedTable.clear()."""
         self._table.clear()
+        self._plot.clear()  # doesn't make sense to plot non-existent data
 
     def _straight_line_continuum_removal_cb(self) -> None:
         """Perform the continuum removal calculations."""
