@@ -20,7 +20,7 @@ class App(tk.Tk):
     STRAIGHT_LINE_CONTINUUM = 0
 
     # GUI window parameters
-    _window_title = 'Spectral Analysis'
+    _window_title = 'Spectral Analysis Tools'
     _window_size = '1280x720'
 
     # GUI table parameters
