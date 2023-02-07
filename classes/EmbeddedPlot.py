@@ -49,30 +49,23 @@ class EmbeddedPlot() :
     _clear_button_h = 0.22
     _clear_button_text = 'Clear'
 
-    # toggle grid button params
-    _toggle_grid_button_x = 0.25
-    _toggle_grid_button_y = 0.00
-    _toggle_grid_button_w = 0.24
-    _toggle_grid_button_h = 0.22
-    _toggle_grid_button_text = 'Toggle Grid'
-
     # toggle raw data button params
     _toggle_raw_data_button_x = 0.25
-    _toggle_raw_data_button_y = 0.25
+    _toggle_raw_data_button_y = 0.00
     _toggle_raw_data_button_w = 0.24
     _toggle_raw_data_button_h = 0.22
     _toggle_raw_data_button_text = 'Toggle Raw Data'
 
     # toggle tool data button params
     _toggle_tool_data_button_x = 0.25
-    _toggle_tool_data_button_y = 0.50
+    _toggle_tool_data_button_y = 0.25
     _toggle_tool_data_button_w = 0.24
     _toggle_tool_data_button_h = 0.22
     _toggle_tool_data_button_text = 'Toggle Tool Data'
 
     # toggle selected data button params
     _toggle_selected_data_button_x = 0.25
-    _toggle_selected_data_button_y = 0.75
+    _toggle_selected_data_button_y = 0.50
     _toggle_selected_data_button_w = 0.24
     _toggle_selected_data_button_h = 0.22
     _toggle_selected_data_button_text = 'Toggle Selections'
@@ -212,16 +205,6 @@ class EmbeddedPlot() :
                                  rely=self._clear_button_y, 
                                  relwidth=self._clear_button_w, 
                                  relheight=self._clear_button_h)
-        
-        # initialize grid toggle button
-        self._do_grid = True
-        self._toggle_grid_button = ttk.Button(self._button_frame, 
-                                              text=self._toggle_grid_button_text, 
-                                              command=self._toggle_grid)
-        self._toggle_grid_button.place(relx=self._toggle_grid_button_x, 
-                                       rely=self._toggle_grid_button_y, 
-                                       relwidth=self._toggle_grid_button_w, 
-                                       relheight=self._toggle_grid_button_h)
         
         # initialize raw data toggle button
         self._do_raw_data = True
@@ -369,21 +352,15 @@ class EmbeddedPlot() :
         if len(self._x_tick_vals) == 0 or len(self._x_tick_strs) == 0:
             self._x_tick_vals = self._plot.get_xticks()
             self._x_tick_strs = self._plot.get_xticklabels()
-            #self._x_lim_min = self._x_tick_vals[0]
-            #self._x_lim_max = self._x_tick_vals[-1]
-            #self._plot.set_xlim(self._x_lim_min, self._x_lim_max)
         if len(self._y_tick_vals) == 0 or len(self._y_tick_strs) == 0:
             self._y_tick_vals = self._plot.get_yticks()
             self._y_tick_strs = self._plot.get_yticklabels()
 
+        # update limits if we didn't manually set them
         if self._x_lim_min >= self._x_lim_max:
             self._x_lim_min, self._x_lim_max = self._plot.get_xlim()
         if self._y_lim_min >= self._y_lim_max:
             self._y_lim_min, self._y_lim_max = self._plot.get_ylim()
-        
-            #self._y_lim_min = self._y_tick_vals[0]
-            #self._y_lim_max = self._y_tick_vals[-1]
-            #self._plot.set_ylim(self._y_lim_min, self._y_lim_max)
 
     def _configure_plot(self) -> None:
         """Applies all plot options to the current plot."""    
@@ -410,10 +387,9 @@ class EmbeddedPlot() :
     def _configure_plot_ticks(self) -> None:
         """Set axis ticks, if empty, let Matplotlib decide"""
         if self._plot is not None:
-            grid_alpha = 1 if self._do_grid else 0
             self._plot.grid(True, which='both', axis='both')
             self._plot.tick_params(labelsize=12, top=True, right=True, 
-                                   direction='in', which='both', grid_alpha=grid_alpha, 
+                                   direction='in', which='both', 
                                    grid_color=self._grid_color)
             if len(self._x_tick_vals) > 0 or len(self._x_tick_strs) > 0:
                 self._plot.set_xticks(self._x_tick_vals)
@@ -543,12 +519,6 @@ class EmbeddedPlot() :
         self._do_selected_data = not self._do_selected_data
         if self._plot is not None:
             self._draw()
-
-    def _toggle_grid(self) -> None:
-        """Toggle whether the plot should include a grid."""
-        self._do_grid = not self._do_grid
-        self._configure_plot_ticks()
-        self._canvas.draw()
     
     def _set_title(self) -> None:
         """Set the title of the plot. Gets input from the text box and clears after."""
