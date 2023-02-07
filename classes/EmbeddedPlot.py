@@ -433,9 +433,13 @@ class EmbeddedPlot() :
         self._x_label = ''
         self._x_lim_min = 0
         self._x_lim_max = 0
+        self._x_tick_vals = []
+        self._x_tick_strs = []
         self._y_label = ''
         self._y_lim_min = 0
         self._y_lim_max = 0
+        self._y_tick_vals = []
+        self._y_tick_strs = []
 
     def save(self, filename: str) -> None:
         """Saves the existing plot."""
