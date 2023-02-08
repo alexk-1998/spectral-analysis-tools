@@ -2,7 +2,7 @@
 
 This repository provides a GUI-based suite of spectral analysis tools for the University of Winnipeg C-TAPE project. The GUI is created through the python package tkinter, with a backend consisting of matplotlib, pandas, and numpy. The application has been tested on MacOS and Windows platforms, both running Python version 3.10.9.
 
-![alt text](sample.png)
+![Sample GUI](sample.jpg)
 
 # Installation
 
