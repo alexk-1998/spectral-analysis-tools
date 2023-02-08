@@ -127,9 +127,6 @@ class EmbeddedPlot() :
     _y_tick_button_h = 0.22
     _y_tick_button_text = 'Set Y Ticks'
 
-    # default plot parameters
-    _grid_color = '#cccccc'
-
     def __init__(self, parent, x, y, w, h):
 
         # create a container for the plot
@@ -402,7 +399,7 @@ class EmbeddedPlot() :
             self._plot.grid(True, which='both', axis='both')
             self._plot.tick_params(labelsize=12, top=True, right=True, 
                                    direction='in', which='both', 
-                                   grid_color=self._grid_color)
+                                   grid_color=config.grid_color)
             if len(self._x_tick_vals) > 0 or len(self._x_tick_strs) > 0:
                 self._plot.set_xticks(self._x_tick_vals)
                 self._plot.set_xticklabels(self._x_tick_strs)
@@ -455,7 +452,7 @@ class EmbeddedPlot() :
 
     def save(self, filename: str) -> None:
         """Saves the existing plot."""
-        self._fig.savefig(filename, bbox_inches='tight')
+        self._fig.savefig(filename, bbox_inches='tight', transparent=True)
 
     def get_selected_points(self) -> tuple:
         """Return the selected points in the plot surface."""
