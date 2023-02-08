@@ -17,7 +17,8 @@ import classes.config as config
 
 class App(tk.Tk):
 
-    STRAIGHT_LINE_CONTINUUM = 0
+    NO_TOOL = 0
+    STRAIGHT_LINE_CONTINUUM = 1
 
     # GUI window parameters
     _window_title = 'Spectral Analysis Tools'
@@ -76,6 +77,8 @@ class App(tk.Tk):
         self._menubar.add_cascade(label="Tools", menu=self._toolmenu)
         self.config(menu=self._menubar)
 
+        self._active_tool = self.NO_TOOL
+
     def run(self) -> None:
         """Run the GUI."""
         tk.mainloop()
@@ -124,14 +127,18 @@ class App(tk.Tk):
             y_list = self._table.get_y()
             x_pts, y_pts = self._plot.get_selected_points()
             self._plot.enable_point_selection(False)
-            y_analyzed = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
-            self._plot.draw(x, y_list, y_analyzed)
+            y_removed, y_analytics = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
+            self._plot.draw(x, y_list, y_removed)
+            print(y_analytics)
+            #s = "An invalid selection occurred. Please ensure the selected data contains only numeric values."
+            #tk.messagebox.showwarning(title=None, message=s)
 
     def _straight_line_continuum_removal(self, x: np.array, y_list: list, x_pts: list, y_pts: list) -> list:
         """Performs continuum removal and calls all analysis functions on the resultant curve."""
 
         # do removal on all selected y-data
-        self._y_analyzed = []
+        y_removed  = []
+        y_analytics = []
         for y in y_list:
 
             # get x-, y-data for analysis
@@ -157,41 +164,41 @@ class App(tk.Tk):
                 y_continuum[mask] = y_raw[mask] / straight_line
                 y_continuum[y_continuum > 1] = 1
                 # analysis calculations
-                fwhm = self._continuum_fwhm(x_continuum[mask], y_continuum[mask])
-                band_min = self._continuum_band_min(y_continuum[mask])
-                band_cen = self._continuum_band_centre(x_continuum[mask], y_continuum[mask])
-                band_dep = self._continuum_band_depth(y_raw[mask], y_continuum[mask])
-                area = self._continuum_area(x_continuum[mask], y_continuum[mask])
-                # TODO: print in the GUI
-                print('Band Analytics:')
-                print(f'\tfwhm: {fwhm:.2f}')
-                print(f'\tminimum: {band_min:.2f}')
-                print(f'\tcentre: {band_cen:.2f}')
-                print(f'\tdepth: {band_dep:.2f}')
-                print(f'\tarea: {area:.2f}')
-                print(f'\tx-range: [{x_pt_min:.2f}, {x_pt_max:.2f}]')
-                print(f'\ty-range: [{y_pt_min:.2f}, {y_pt_max:.2f}]')
+                analytics = {}
+                analytics['band_fwhm']   = self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask])
+                analytics['band_min']    = self._continuum_band_min(y_continuum[mask])
+                analytics['band_centre'] = self._continuum_band_centre(x_continuum[mask], y_continuum[mask])
+                analytics['band_depth']  = self._continuum_band_depth(y_raw[mask], y_continuum[mask])
+                analytics['band_area']   = self._continuum_band_area(x_continuum[mask], y_continuum[mask])
+                analytics['x_range']     = [x_pt_min, x_pt_max]
+                analytics['y_range']     = [y_pt_min, y_pt_max]
             # set data outside threshold bounds to 1
-            self._y_analyzed.append(y_continuum)
-        return self._y_analyzed
+            y_removed.append(y_continuum)
+            y_analytics.append(analytics)
+        return y_removed, y_analytics
 
-    def _continuum_fwhm(self, x: np.array, y: np.array) -> float:
+    def _continuum_band_fwhm(self, x: np.array, y: np.array) -> float:
         """
         Returns the full-width half-maximum of a given curve.
         fwhm is the x-width between the y-midpoints of a curve.
         """
-        # get y-curve half-value and minima index
-        y_min_idx = y.argmin()
-        y_half = (y.max() + y.min()) / 2
-        # get x-value at minima
-        x_mid = x[y_min_idx]
-        # get x-value at closest value on minima LHS
-        y_lhs_idx = (np.abs(y[x < x_mid] - y_half)).argmin()
-        x_lhs = x[y_lhs_idx]
-        # get x-value at closest value on minima RHS
-        y_rhs_idx = (np.abs(y[x > x_mid] - y_half)).argmin() + len(y[x <= x_mid])
-        x_rhs = x[y_rhs_idx]
-        return x_rhs - x_lhs
+        retval = -1
+        try:
+            # get y-curve half-value and minima index
+            y_min_idx = y.argmin()
+            y_half = (y.max() + y.min()) / 2
+            # get x-value at minima
+            x_mid = x[y_min_idx]
+            # get x-value at closest value on minima LHS
+            y_lhs_idx = (np.abs(y[x < x_mid] - y_half)).argmin()
+            x_lhs = x[y_lhs_idx]
+            # get x-value at closest value on minima RHS
+            y_rhs_idx = (np.abs(y[x > x_mid] - y_half)).argmin() + len(y[x <= x_mid])
+            x_rhs = x[y_rhs_idx]
+            retval = x_rhs - x_lhs
+        except ValueError as e:
+            pass
+        return retval
 
     def _continuum_band_min(self, y: np.array) -> float:
         """Returns the minimum value of a curve."""
@@ -211,7 +218,7 @@ class App(tk.Tk):
         band_centre_idx = y_cont.argmin()
         return 1 - y_raw[band_centre_idx] / y_cont[band_centre_idx]
 
-    def _continuum_area(self, x: np.array, y: np.array) -> float:
+    def _continuum_band_area(self, x: np.array, y: np.array) -> float:
         """Returns the upper area of a constrained curve."""
         # boxed area around the removed curve
         box_area = np.trapz(np.ones_like(y), x=x)
