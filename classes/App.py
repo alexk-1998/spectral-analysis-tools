@@ -113,13 +113,10 @@ class App(tk.Tk):
         self._table.clear()
         self._plot.clear()  # doesn't make sense to plot non-existent data
 
-    def _straight_line_continuum_removal_cb(self) -> None:
-        """Perform the continuum removal calculations."""
-        self._plot.enable_point_selection(True)
-        self._active_tool = self.STRAIGHT_LINE_CONTINUUM
-
     def _run_tool(self) -> None:
         """Perform the active tool analysis."""
+
+        analytics_list = None
 
         # run the straight line continuum removal tool
         if self._active_tool == self.STRAIGHT_LINE_CONTINUUM:
@@ -127,11 +124,30 @@ class App(tk.Tk):
             y_list = self._table.get_y()
             x_pts, y_pts = self._plot.get_selected_points()
             self._plot.enable_point_selection(False)
-            y_removed, y_analytics = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
-            self._plot.draw(x, y_list, y_removed)
-            print(y_analytics)
-            #s = "An invalid selection occurred. Please ensure the selected data contains only numeric values."
-            #tk.messagebox.showwarning(title=None, message=s)
+            y_removed_list, analytics_list = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
+            self._plot.draw(x, y_list, y_removed_list)
+
+        if analytics_list is not None:
+            for i, analytics in enumerate(analytics_list):
+                top = tk.Toplevel(self)
+                top.title(f"Band Analytics #{i+1}")
+                top.config(bg=config.widget_bg_color)
+                s = ""
+                for key in analytics.keys():
+                    if key != 'type':
+                        value = analytics[key]
+                        if isinstance(value, list):
+                            value = str([round(v, 6) for v in value])
+                        else:
+                            value = str(round(value, 6))
+                        key = str(key).replace('_', ' ')
+                        s += f"{key}: {value}\n"
+                ttk.Label(top, text=s, background=config.widget_bg_color).pack()
+
+    def _straight_line_continuum_removal_cb(self) -> None:
+        """Perform the continuum removal calculations."""
+        self._plot.enable_point_selection(True)
+        self._active_tool = self.STRAIGHT_LINE_CONTINUUM
 
     def _straight_line_continuum_removal(self, x: np.array, y_list: list, x_pts: list, y_pts: list) -> list:
         """Performs continuum removal and calls all analysis functions on the resultant curve."""
@@ -165,6 +181,7 @@ class App(tk.Tk):
                 y_continuum[y_continuum > 1] = 1
                 # analysis calculations
                 analytics = {}
+                analytics['type']        = self.STRAIGHT_LINE_CONTINUUM
                 analytics['band_fwhm']   = self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask])
                 analytics['band_min']    = self._continuum_band_min(y_continuum[mask])
                 analytics['band_centre'] = self._continuum_band_centre(x_continuum[mask], y_continuum[mask])
@@ -172,9 +189,8 @@ class App(tk.Tk):
                 analytics['band_area']   = self._continuum_band_area(x_continuum[mask], y_continuum[mask])
                 analytics['x_range']     = [x_pt_min, x_pt_max]
                 analytics['y_range']     = [y_pt_min, y_pt_max]
-            # set data outside threshold bounds to 1
+                y_analytics.append(analytics)
             y_removed.append(y_continuum)
-            y_analytics.append(analytics)
         return y_removed, y_analytics
 
     def _continuum_band_fwhm(self, x: np.array, y: np.array) -> float:
