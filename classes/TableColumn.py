@@ -6,6 +6,7 @@
 # only adds an additional index variable to avoid unnecessary searches.
 # TODO: implement different display styles
 
+from tkinter import END
 from tkinter import Listbox as tkListbox
 import classes.config as config
 
@@ -18,7 +19,9 @@ class TableColumn(tkListbox):
                     borderwidth=0,
                     highlightthickness=0,
                     xscrollcommand=None)
+        self.bind('<FocusOut>', lambda e: self.selection_clear(0, END))
         self._index = index
+
 
     def get_index(self):
         return self._index

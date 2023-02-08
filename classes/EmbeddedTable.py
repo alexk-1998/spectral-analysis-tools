@@ -155,6 +155,7 @@ class EmbeddedTable() :
                                relief=config.relief, 
                                borderwidth=config.border_width)
         self._x_listbox.insert(0, self._x_listbox_default_string)
+        self._x_listbox.bind('<FocusOut>', lambda e: self.selection_clear(0, tk.END))
         
         # listbox for showing active y-data
         self._y_listbox = tk.Listbox(self._frame, justify=tk.CENTER, 
@@ -172,6 +173,7 @@ class EmbeddedTable() :
         self._y_listbox.bind("<ButtonRelease-1>", self._set_active_y)
         self._y_listbox.bind("<Up>", self._listbox_key_up)
         self._y_listbox.bind("<Down>", self._listbox_key_down)
+        self._y_listbox.bind('<FocusOut>', lambda e: self.selection_clear(0, tk.END))
 
         # create a canvas for holding a number of TableColumns to form a table
         self._canvas = None
