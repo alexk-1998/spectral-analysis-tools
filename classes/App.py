@@ -12,6 +12,7 @@ import numpy as np
 
 from classes.EmbeddedPlot import EmbeddedPlot
 from classes.EmbeddedTable import EmbeddedTable
+from classes.AnalyticsWindow import AnalyticsWindow
 
 import classes.config as config
 
@@ -77,7 +78,9 @@ class App(tk.Tk):
         self._menubar.add_cascade(label="Tools", menu=self._toolmenu)
         self.config(menu=self._menubar)
 
-        self._active_tool = self.NO_TOOL
+        self._analytics_tool = self.NO_TOOL
+        #self._analytics_list  = None
+        #self._analytics_views = None
 
     def run(self) -> None:
         """Run the GUI."""
@@ -116,10 +119,8 @@ class App(tk.Tk):
     def _run_tool(self) -> None:
         """Perform the active tool analysis."""
 
-        analytics_list = None
-
         # run the straight line continuum removal tool
-        if self._active_tool == self.STRAIGHT_LINE_CONTINUUM:
+        if self._analytics_tool == self.STRAIGHT_LINE_CONTINUUM:
             x = self._table.get_x()
             y_list = self._table.get_y()
             x_pts, y_pts = self._plot.get_selected_points()
@@ -127,27 +128,15 @@ class App(tk.Tk):
             y_removed_list, analytics_list = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
             self._plot.draw(x, y_list, y_removed_list)
 
-        if analytics_list is not None:
-            for i, analytics in enumerate(analytics_list):
-                top = tk.Toplevel(self)
-                top.title(f"Band Analytics #{i+1}")
-                top.config(bg=config.widget_bg_color)
-                s = ""
-                for key in analytics.keys():
-                    if key != 'type':
-                        value = analytics[key]
-                        if isinstance(value, list):
-                            value = str([round(v, 6) for v in value])
-                        else:
-                            value = str(round(value, 6))
-                        key = str(key).replace('_', ' ')
-                        s += f"{key}: {value}\n"
-                ttk.Label(top, text=s, background=config.widget_bg_color).pack()
+        # display window with analytical results
+        if analytics_list is not None and len(analytics_list) > 0:
+            AnalyticsWindow(self, analytics_list)
 
     def _straight_line_continuum_removal_cb(self) -> None:
         """Perform the continuum removal calculations."""
+        #self._analytics_list = None
         self._plot.enable_point_selection(True)
-        self._active_tool = self.STRAIGHT_LINE_CONTINUUM
+        self._analytics_tool = self.STRAIGHT_LINE_CONTINUUM
 
     def _straight_line_continuum_removal(self, x: np.array, y_list: list, x_pts: list, y_pts: list) -> list:
         """Performs continuum removal and calls all analysis functions on the resultant curve."""
@@ -181,14 +170,15 @@ class App(tk.Tk):
                 y_continuum[y_continuum > 1] = 1
                 # analysis calculations
                 analytics = {}
-                analytics['type']        = self.STRAIGHT_LINE_CONTINUUM
-                analytics['band_fwhm']   = self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask])
-                analytics['band_min']    = self._continuum_band_min(y_continuum[mask])
-                analytics['band_centre'] = self._continuum_band_centre(x_continuum[mask], y_continuum[mask])
-                analytics['band_depth']  = self._continuum_band_depth(y_raw[mask], y_continuum[mask])
-                analytics['band_area']   = self._continuum_band_area(x_continuum[mask], y_continuum[mask])
-                analytics['x_range']     = [x_pt_min, x_pt_max]
-                analytics['y_range']     = [y_pt_min, y_pt_max]
+                analytics['band fwhm']   = self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask])
+                analytics['band min']    = self._continuum_band_min(y_continuum[mask])
+                analytics['band centre'] = self._continuum_band_centre(x_continuum[mask], y_continuum[mask])
+                analytics['band depth']  = self._continuum_band_depth(y_raw[mask], y_continuum[mask])
+                analytics['band area']   = self._continuum_band_area(x_continuum[mask], y_continuum[mask])
+                analytics['x min']       = x_pt_min
+                analytics['x max']       = x_pt_max
+                analytics['y min']       = y_pt_min
+                analytics['y max']       = y_pt_max
                 y_analytics.append(analytics)
             y_removed.append(y_continuum)
         return y_removed, y_analytics
@@ -251,6 +241,7 @@ class App(tk.Tk):
         self._configure_frame()
         self._configure_entry()
         self._configure_scrollbar()
+        self._configure_treeview()
 
     def _configure_button(self):
         """
@@ -305,6 +296,15 @@ class App(tk.Tk):
                     {'children': [('Vertical.Scrollbar.thumb', 
                     {'expand': '1', 'sticky': 'nswe'})],
                     'sticky': 'nsew'})])
+
+    def _configure_treeview(self):
+        """
+        Handles configuration of treeview styling.
+        """
+        self._style.configure('Treeview',
+                    background=config.widget_bg_color,
+                    foreground=config.text_color,
+                    fieldbackground=config.widget_bg_color)
 
     def _resize(self, event):
         """
