@@ -15,9 +15,6 @@ class AnalyticsWindow(tk.Toplevel):
 
         self._analytics = analytics
 
-        #self._frame = ttk.Frame(self, style='Bordered.TFrame')
-        #self._frame.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.88)
-
         self._treeview = ttk.Treeview(self, columns=list(analytics.columns), show='headings', height=len(analytics))
         # add headers, prevent column expansion
         width = 100
@@ -29,13 +26,12 @@ class AnalyticsWindow(tk.Toplevel):
         for i in range(len(analytics)):
             self._treeview.insert('', 0, values=list(analytics.iloc[i, :].round(n_round).values))
         self._treeview.grid(row=0, column=0, columnspan=len(analytics.columns), sticky=tk.NSEW)
-        #self._treeview.pack(fill=tk.BOTH, expand=True, sticky)
 
         # add save button beneath
         self._save_button = ttk.Button(self, 
                                        text='Save', 
                                        command=self._save)
-        self._save_button.grid(row=1, column=1, padx=5, pady=5)
+        self._save_button.grid(row=0, column=len(analytics.columns), padx=5)
 
     def _save(self):
         """Callback for saving the stored data"""
