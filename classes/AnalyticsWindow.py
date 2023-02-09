@@ -13,6 +13,7 @@ class AnalyticsWindow(tk.Toplevel):
         self.title("Analytics")
         self.config(bg=config.widget_bg_color)
 
+        # save for later access
         self._analytics = analytics
 
         self._treeview = ttk.Treeview(self, columns=list(analytics.columns), show='headings', height=len(analytics))
@@ -33,9 +34,9 @@ class AnalyticsWindow(tk.Toplevel):
                                        command=self._save)
         self._save_button.grid(row=0, column=len(analytics.columns), padx=5)
 
-    def _save(self):
+    def _save(self) -> None:
         """Callback for saving the stored data"""
         allowed_types = [('csv', '*.csv')]
         filename = tk.filedialog.asksaveasfilename(filetypes=allowed_types, defaultextension=allowed_types)
-        if filename is not None:
+        if filename is not None and filename != '':
             self._analytics.to_csv(filename, index=False)
