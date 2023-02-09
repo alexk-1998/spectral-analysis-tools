@@ -9,6 +9,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 
 import numpy as np
+import pandas as pd
 
 from classes.EmbeddedPlot import EmbeddedPlot
 from classes.EmbeddedTable import EmbeddedTable
@@ -79,8 +80,6 @@ class App(tk.Tk):
         self.config(menu=self._menubar)
 
         self._analytics_tool = self.NO_TOOL
-        #self._analytics_list  = None
-        #self._analytics_views = None
 
     def run(self) -> None:
         """Run the GUI."""
@@ -118,6 +117,7 @@ class App(tk.Tk):
 
     def _run_tool(self) -> None:
         """Perform the active tool analysis."""
+        analytics = None
 
         # run the straight line continuum removal tool
         if self._analytics_tool == self.STRAIGHT_LINE_CONTINUUM:
@@ -125,12 +125,12 @@ class App(tk.Tk):
             y_list = self._table.get_y()
             x_pts, y_pts = self._plot.get_selected_points()
             self._plot.enable_point_selection(False)
-            y_removed_list, analytics_list = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
+            y_removed_list, analytics = self._straight_line_continuum_removal(x, y_list, x_pts, y_pts)
             self._plot.draw(x, y_list, y_removed_list)
 
         # display window with analytical results
-        if analytics_list is not None and len(analytics_list) > 0:
-            AnalyticsWindow(self, analytics_list)
+        if analytics is not None:
+            AnalyticsWindow(self, analytics)
 
     def _straight_line_continuum_removal_cb(self) -> None:
         """Perform the continuum removal calculations."""
@@ -143,7 +143,23 @@ class App(tk.Tk):
 
         # do removal on all selected y-data
         y_removed  = []
-        y_analytics = []
+
+        # currently empty data store, fill lists then add to df
+        analytics = pd.DataFrame(None, columns=['band fwhm', 'band min', 
+                                                'band centre', 'band depth',
+                                                'band area', 
+                                                'x min', 'x max',
+                                                'y min', 'y max'])
+        band_fwhms   = []
+        band_minima  = []
+        band_centres = []
+        band_depths  = []
+        band_areas   = []
+        x_minima     = []
+        x_maxima     = []
+        y_minima     = []
+        y_maxima     = []
+
         for y in y_list:
 
             # get x-, y-data for analysis
@@ -154,6 +170,7 @@ class App(tk.Tk):
 
             # iterate over removal points and do relative reflectance only between consecutive points
             for x_pt, y_pt in zip(x_pts, y_pts):
+
                 # get min/max values, swap if max < min
                 x_pt_min = x_pt[0]
                 x_pt_max = x_pt[1]
@@ -162,26 +179,40 @@ class App(tk.Tk):
                 if x_pt_min > x_pt_max:
                     x_pt_min, x_pt_max = x_pt_max, x_pt_min
                     y_pt_min, y_pt_max = y_pt_max, y_pt_min
+
                 # get the continuum mask
                 mask = (x_continuum >= x_pt_min) & (x_continuum <= x_pt_max)
                 # do continuum removal
                 straight_line = np.linspace(y_pt_min, y_pt_max, len(x_continuum[mask]))
                 y_continuum[mask] = y_raw[mask] / straight_line
                 y_continuum[y_continuum > 1] = 1
+
                 # analysis calculations
-                analytics = {}
-                analytics['band fwhm']   = self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask])
-                analytics['band min']    = self._continuum_band_min(y_continuum[mask])
-                analytics['band centre'] = self._continuum_band_centre(x_continuum[mask], y_continuum[mask])
-                analytics['band depth']  = self._continuum_band_depth(y_raw[mask], y_continuum[mask])
-                analytics['band area']   = self._continuum_band_area(x_continuum[mask], y_continuum[mask])
-                analytics['x min']       = x_pt_min
-                analytics['x max']       = x_pt_max
-                analytics['y min']       = y_pt_min
-                analytics['y max']       = y_pt_max
-                y_analytics.append(analytics)
+                band_fwhms.append(self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask]))
+                band_minima.append(self._continuum_band_min(y_continuum[mask]))
+                band_centres.append(self._continuum_band_centre(x_continuum[mask], y_continuum[mask]))
+                band_depths.append(self._continuum_band_depth(y_raw[mask], y_continuum[mask]))
+                band_areas.append(self._continuum_band_area(x_continuum[mask], y_continuum[mask]))
+                x_minima.append(x_pt_min)
+                x_maxima.append(x_pt_max)
+                y_minima.append(y_pt_min)
+                y_maxima.append(y_pt_max)
+
+            # append continuum-removed curve
             y_removed.append(y_continuum)
-        return y_removed, y_analytics
+
+        # populate the dataframe from the lists
+        analytics['band fwhm']   = band_fwhms
+        analytics['band min']    = band_minima
+        analytics['band centre'] = band_centres
+        analytics['band depth']  = band_depths
+        analytics['band area']   = band_areas
+        analytics['x min']       = x_minima
+        analytics['x max']       = x_maxima
+        analytics['y min']       = y_minima
+        analytics['y max']       = y_maxima
+
+        return y_removed, analytics
 
     def _continuum_band_fwhm(self, x: np.array, y: np.array) -> float:
         """

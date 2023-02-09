@@ -1,55 +1,45 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 
+import pandas as pd
+
 import classes.config as config
 
 class AnalyticsWindow(tk.Toplevel):
 
-    # treeview paramaters
-    _n_round = 4 # round all values to 4 digits
-    _width   = 100
-
-    def __init__(self, parent, analytics_list):
+    def __init__(self, parent, analytics):
         super().__init__(parent)
 
         self.title("Analytics")
         self.config(bg=config.widget_bg_color)
 
-        # reform the data to pass to treeview
-        self._analytics = self._reform_analytics(analytics_list)
-        keys = list(self._analytics.keys())   # any key works here
-        n = len(self._analytics[keys[0]])         # get length of lists in dict
+        self._analytics = analytics
 
-        self._treeview = ttk.Treeview(self, columns=list(self._analytics.keys()), show='headings', height=n)
+        #self._frame = ttk.Frame(self, style='Bordered.TFrame')
+        #self._frame.place(relx=0.01, rely=0.01, relwidth=0.98, relheight=0.88)
+
+        self._treeview = ttk.Treeview(self, columns=list(analytics.columns), show='headings', height=len(analytics))
         # add headers, prevent column expansion
-        for key in keys:
-            self._treeview.column(key, stretch=False, width=self._width)
-            self._treeview.heading(key, text=key)
+        width = 100
+        for column in list(analytics.columns):
+            self._treeview.column(column, stretch=False, width=width)
+            self._treeview.heading(column, text=column)
         # add data
-        for i in range(n):
-            values = self._get_row_strs(self._analytics, i, self._n_round)
-            self._treeview.insert('', 0, values=values)
-        self._treeview.pack()
+        n_round = 4
+        for i in range(len(analytics)):
+            self._treeview.insert('', 0, values=list(analytics.iloc[i, :].round(n_round).values))
+        self._treeview.grid(row=0, column=0, columnspan=len(analytics.columns), sticky=tk.NSEW)
+        #self._treeview.pack(fill=tk.BOTH, expand=True, sticky)
 
-    def _reform_analytics(self, analytics_list: list) -> dict:
-        """Class receives a list of dictionaries, convert to one dict with a list for each value."""
-        # create empty lists to append to
-        analytics = {}
-        keys = analytics_list[0].keys()
-        for key in keys:
-            analytics[key] = []
-        # append all data
-        for analytics_orig in analytics_list:
-            for key in keys:
-                analytics[key].append(analytics_orig[key])
-        return analytics
+        # add save button beneath
+        self._save_button = ttk.Button(self, 
+                                       text='Save', 
+                                       command=self._save)
+        self._save_button.grid(row=1, column=1, padx=5, pady=5)
 
-    def _get_row_strs(self, analytics: dict, i: int, n_round: int) -> list:
-        """Return the i-th entry as a rounded string in all value lists"""
-        values = []
-        for key in analytics.keys():
-            values.append(str(round(analytics[key][i], n_round)))
-        return values
-        
-
-
+    def _save(self):
+        """Callback for saving the stored data"""
+        allowed_types = [('csv', '*.csv')]
+        filename = tk.filedialog.asksaveasfilename(filetypes=allowed_types, defaultextension=allowed_types)
+        if filename is not None:
+            self._analytics.to_csv(filename, index=False)
