@@ -22,22 +22,6 @@ class App(tk.Tk):
     NO_TOOL = 0
     STRAIGHT_LINE_CONTINUUM = 1
 
-    # GUI window parameters
-    _window_title = 'Spectral Analysis Tools'
-    _window_size = '1280x720'
-
-    # GUI table parameters
-    _table_x = 0.02
-    _table_y = 0.02
-    _table_w = 0.47
-    _table_h = 0.96
-
-    # GUI plot parameters
-    _plot_x = 0.51
-    _plot_y = 0.02
-    _plot_w = 0.47
-    _plot_h = 0.96
-
     def __init__(self):
         super().__init__()
         self.bind('<Configure>', self._resize)
@@ -49,21 +33,27 @@ class App(tk.Tk):
         self._configure_widgets()
 
         # initialize the window
-        self.title(self._window_title)
-        self.geometry(self._window_size)
+        self.title('Spectral Analysis Tools')
+        self.geometry('1280x720')
 
-        # initialize the GUI components
-        self._table = EmbeddedTable(self, self._table_x, self._table_y, self._table_w, self._table_h)
-        self._plot = EmbeddedPlot(self, self._plot_x, self._plot_y, self._plot_w, self._plot_h)
-        self._plot._update_button.config(command=self._update_plot)
+        # GUI table component
+        table_x, table_y, table_w, table_h = 0.02, 0.02, 0.47, 0.96
+        self._table = EmbeddedTable(self, table_x, table_y, table_w, table_h)
+
+        # GUI plot component
+        plot_x, plot_y, plot_w, plot_h = 0.51, 0.02, 0.47, 0.96
+        self._plot = EmbeddedPlot(self, plot_x, plot_y, plot_w, plot_h)
+        self._plot._update_button.config(command=lambda: self._plot.draw(self._table.get_x(), self._table.get_y()))
         self._plot._save_button.config(command=self._save_plot)
 
         # create the menu bar
         self._menubar = tk.Menu(self)
+        self.config(menu=self._menubar)
 
         # create the file menu
         self._filemenu = tk.Menu(self._menubar, tearoff=0)
         self._filemenu.add_command(label="Open", command=self._open_file)
+        self._menubar.add_cascade(label="File", menu=self._filemenu)
 
         # create the tools menu
         self._toolmenu = tk.Menu(self._menubar, tearoff=0)
@@ -71,12 +61,9 @@ class App(tk.Tk):
                                    command=self._straight_line_continuum_removal_cb)
         self._toolmenu.add_separator()
         self._toolmenu.add_command(label="Run Tool", command=self._run_tool)
-
-        # add menu bars to window
-        self._menubar.add_cascade(label="File", menu=self._filemenu)
         self._menubar.add_cascade(label="Tools", menu=self._toolmenu)
-        self.config(menu=self._menubar)
 
+        # default to no tool selected
         self._analytics_tool = self.NO_TOOL
 
     def run(self) -> None:
@@ -90,28 +77,12 @@ class App(tk.Tk):
         if filename is not None:
             self._table.open(filename)
 
-    def _update_plot(self) -> None:
-        """
-        See EmbeddedPlot.draw().
-        Pass all currently selected x, y, and point data.
-        """
-        self._plot.draw(self._table.get_x(), self._table.get_y())
-
     def _save_plot(self) -> None:
         """See EmbeddedPlot.save()."""
         allowed_types = [('PDF', '*.pdf'), ('PNG', '*.png'), ('JPEG', '*.jpeg')]
         filename = tk.filedialog.asksaveasfilename(filetypes=allowed_types, defaultextension=allowed_types)
         if filename != '' and filename.find('.') != 0: # non-empty name with filename length >= 1, not including extension
             self._plot.save(filename)
-
-    def _clear_plot(self) -> None:
-        """See EmbeddedPlot.clear()."""
-        self._plot.clear()
-
-    def _clear_data(self) -> None:
-        """See EmbeddedTable.clear()."""
-        self._table.clear()
-        self._plot.clear()  # doesn't make sense to plot non-existent data
 
     def _run_tool(self) -> None:
         """Perform the active tool analysis."""
