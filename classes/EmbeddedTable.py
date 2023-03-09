@@ -19,7 +19,7 @@ import classes.config as config
 class EmbeddedTable() :
 
     # font params
-    _text_size = 13
+    _text_size  = 13
     _text_round = 6 # digits to round to in table
 
     # table params
@@ -360,7 +360,7 @@ class EmbeddedTable() :
             n_cols = len(df.columns)
             for i in range(n_cols):
                 column = TableColumn(self._canvas, i, justify=tk.LEFT, selectmode=tk.EXTENDED,
-                                     height=n_rows, activestyle=tk.NONE, font=self._font, width=self._column_max_char)
+                                     height=0, width=0, activestyle=tk.NONE, font=self._font)
                 column.bind("<MouseWheel>", self._canvas_v_scroll)
                 column.bind("<ButtonRelease-1>", self._get_table_selection)
                 for j in range(n_rows):
@@ -371,7 +371,7 @@ class EmbeddedTable() :
                     val = val[:self._column_max_char]
                     column.insert(j, val)
                 # add column to canvas
-                self._canvas.create_window(i*(self._column_width+config.text_pad), 0, window=column, anchor=tk.NW)
+                self._canvas.create_window(i*(self._column_width+config.text_pad), 0, height=0, width=0, window=column, anchor=tk.NW)
                 self._table_columns.append(column)
             # configure the canvas
             self._canvas.place(relx=self._canvas_x, rely=self._canvas_y, relwidth=self._canvas_w, relheight=self._canvas_h)
@@ -396,6 +396,7 @@ class EmbeddedTable() :
         if self._df is not None:
             col = event.widget.get_index()
             rows = list(event.widget.curselection())
+            print(col, rows)
             # single-selection logic
             # selects all numeric values below until next non-numeric value
             if len(rows) == 1:

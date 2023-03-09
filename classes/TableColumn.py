@@ -20,8 +20,12 @@ class TableColumn(tkListbox):
                     highlightthickness=0,
                     xscrollcommand=None)
         self.bind('<FocusOut>', lambda e: self.selection_clear(0, END))
+        self.bind("<Up>", self.ignore)
+        self.bind("<Down>", self.ignore)
         self._index = index
-
 
     def get_index(self):
         return self._index
+    
+    def ignore(self, e):
+        return "break"
