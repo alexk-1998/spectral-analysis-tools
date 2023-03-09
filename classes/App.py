@@ -64,8 +64,6 @@ class App(tk.Tk):
         # create the file menu
         self._filemenu = tk.Menu(self._menubar, tearoff=0)
         self._filemenu.add_command(label="Open", command=self._open_file)
-        self._filemenu.add_separator()
-        self._filemenu.add_command(label="Exit", command=self.quit)
 
         # create the tools menu
         self._toolmenu = tk.Menu(self._menubar, tearoff=0)
