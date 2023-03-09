@@ -22,81 +22,8 @@ class EmbeddedTable() :
     _text_size  = 13
     _text_round = 6 # digits to round to in table
 
-    # table params
-    _table_x = 0.00
-    _table_y = 0.00
-    _table_w = 1.00
-    _table_h = 1.00
-
-    # canvas frame params
-    _canvas_frame_x = 0.00
-    _canvas_frame_y = 0.00
-    _canvas_frame_w = 0.98
-    _canvas_frame_h = 0.80
-
-    # canvas params
-    _canvas_x = 0.01
-    _canvas_y = 0.01
-    _canvas_w = 0.98
-    _canvas_h = 0.98
-
-    # align to the right of the canvas with the same height
-    _v_scrollbar_x = 0.985
-    _v_scrollbar_y = 0.000
-    _v_scrollbar_w = 0.015
-    _v_scrollbar_h = 0.800
-
-    # align beneath the table canvas with the same width
-    _h_scrollbar_x = 0.000
-    _h_scrollbar_y = 0.805
-    _h_scrollbar_w = 0.980
-    _h_scrollbar_h = 0.015
-
-    # button text factors
-    _frame_w_text_factor = 50.000
-    _frame_h_text_factor = 28.125
-
     # x-data add button params
-    _x_set_button_x = 0.14
-    _x_set_button_y = 0.84
-    _x_set_button_w = 0.10
-    _x_set_button_h = 0.04
-    _x_set_button_text = 'Set'
-
-    # x-data remove button params
-    _x_reset_button_x = 0.26
-    _x_reset_button_y = 0.84
-    _x_reset_button_w = 0.10
-    _x_reset_button_h = 0.04
-    _x_reset_button_text = 'Reset'
-
-    # y-data add button params
-    _y_add_button_x = 0.64
-    _y_add_button_y = 0.84
-    _y_add_button_w = 0.10
-    _y_add_button_h = 0.04
-    _y_add_button_text = 'Add'
-
-    # y-data remove button params
-    _y_delete_button_x = 0.76
-    _y_delete_button_y = 0.84
-    _y_delete_button_w = 0.10
-    _y_delete_button_h = 0.04
-    _y_delete_button_text = 'Delete'
-
-    # x-listbox (data display) params
-    _x_listbox_x = 0.25
-    _x_listbox_y = 0.89
-    _x_listbox_w = 0.30
-    _x_listbox_rows = 3
-    _x_listbox_default_string = 'no data'
-
-    # y-listbox (data display) params
-    _y_listbox_x = 0.75
-    _y_listbox_y = 0.89
-    _y_listbox_w = 0.30
-    _y_listbox_rows = 3
-    _y_listbox_default_string = 'no data'
+    _listbox_default_string = 'no data'
 
     def __init__(self, parent, x, y, w, h):
 
@@ -110,11 +37,9 @@ class EmbeddedTable() :
         self._frame.place(relx=x, rely=y, relwidth=w, relheight=h)
 
         # create the canvas frame
+        canvas_frame_x, canvas_frame_y, canvas_frame_w, canvas_frame_h = 0.00, 0.00, 0.98, 0.80
         self._canvas_frame = ttk.Frame(self._frame, style='Bordered.TFrame')
-        self._canvas_frame.place(relx=self._canvas_frame_x, 
-                                 rely=self._canvas_frame_y, 
-                                 relwidth=self._canvas_frame_w, 
-                                 relheight=self._canvas_frame_h)
+        self._canvas_frame.place(relx=canvas_frame_x, rely=canvas_frame_y, relwidth=canvas_frame_w, relheight=canvas_frame_h)
         self._canvas_frame.bind("<MouseWheel>", self._canvas_v_scroll)
 
         # set the font and measure for table spacing
@@ -123,57 +48,65 @@ class EmbeddedTable() :
         self._column_max_char = 10
 
         # create a vertical scrollbar
-        self._v_scrollbar = ttk.Scrollbar(self._frame, 
-                                          orient=tk.VERTICAL, 
-                                          command=self._scrollbar_v_scroll)
-        self._v_scrollbar.place(relx=self._v_scrollbar_x, 
-                                rely=self._v_scrollbar_y, 
-                                relwidth=self._v_scrollbar_w, 
-                                relheight=self._v_scrollbar_h)
+        # align to the right of the canvas with the same height
+        v_scrollbar_x, v_scrollbar_y, v_scrollbar_w, v_scrollbar_h = 0.985, 0.000, 0.015, 0.800
+        self._v_scrollbar = ttk.Scrollbar(self._frame, orient=tk.VERTICAL, command=self._scrollbar_v_scroll)
+        self._v_scrollbar.place(relx=v_scrollbar_x, rely=v_scrollbar_y, relwidth=v_scrollbar_w, relheight=v_scrollbar_h)
         self._v_scrollbar.bind("<ButtonPress-1>", self._scrollbar_v_click)
 
         # create a horizontal scrollbar
-        self._h_scrollbar = ttk.Scrollbar(self._frame, 
-                                          orient=tk.HORIZONTAL, 
-                                          command=self._scrollbar_h_scroll)
-        self._h_scrollbar.place(relx=self._h_scrollbar_x, 
-                                rely=self._h_scrollbar_y, 
-                                relwidth=self._h_scrollbar_w, 
-                                relheight=self._h_scrollbar_h)
+        # align beneath the table canvas with the same width
+        h_scrollbar_x, h_scrollbar_y, h_scrollbar_w, h_scrollbar_h = 0.000, 0.805, 0.980, 0.015
+        self._h_scrollbar = ttk.Scrollbar(self._frame, orient=tk.HORIZONTAL, command=self._scrollbar_h_scroll)
+        self._h_scrollbar.place(relx=h_scrollbar_x, rely=h_scrollbar_y, relwidth=h_scrollbar_w, relheight=h_scrollbar_h)
         self._h_scrollbar.bind("<ButtonPress-1>", self._scrollbar_h_click)
 
         # listbox for showing active x-data
+        x_listbox_x, x_listbox_y, x_listbox_w = 0.25, 0.89, 0.30
+        x_listbox_rows = 3
         self._x_listbox = tk.Listbox(self._frame, justify=tk.CENTER, 
-                                     selectmode=tk.SINGLE, height=self._x_listbox_rows, 
+                                     selectmode=tk.SINGLE, height=x_listbox_rows, 
                                      activestyle=tk.NONE, font=self._font)
-        self._x_listbox.place(relx=self._x_listbox_x, 
-                              rely=self._x_listbox_y, 
-                              relwidth=self._x_listbox_w, 
-                              anchor=tk.N)
-        self._x_listbox.config(background=config.widget_bg_color, 
-                               foreground=config.text_color, 
-                               relief=config.relief, 
-                               borderwidth=config.border_width)
-        self._x_listbox.insert(0, self._x_listbox_default_string)
+        self._x_listbox.place(relx=x_listbox_x, rely=x_listbox_y, relwidth=x_listbox_w, anchor=tk.N)
+        self._x_listbox.config(background=config.widget_bg_color, foreground=config.text_color, 
+                               relief=config.relief, borderwidth=config.border_width)
+        self._x_listbox.insert(0, self._listbox_default_string)
         self._x_listbox.bind('<FocusOut>', lambda e: self.selection_clear(0, tk.END))
         
         # listbox for showing active y-data
+        y_listbox_x, y_listbox_y, y_listbox_w = 0.75, 0.89, 0.30
+        y_listbox_rows = 3
         self._y_listbox = tk.Listbox(self._frame, justify=tk.CENTER, 
-                                     selectmode=tk.SINGLE, height=self._y_listbox_rows, 
+                                     selectmode=tk.SINGLE, height=y_listbox_rows, 
                                      activestyle=tk.NONE, font=self._font)
-        self._y_listbox.place(relx=self._y_listbox_x, 
-                              rely=self._y_listbox_y, 
-                              relwidth=self._y_listbox_w, 
-                              anchor=tk.N)
-        self._y_listbox.config(background=config.widget_bg_color, 
-                               foreground=config.text_color, 
-                               relief=config.relief, 
-                               borderwidth=config.border_width)
-        self._y_listbox.insert(0, self._y_listbox_default_string)
+        self._y_listbox.place(relx=y_listbox_x, rely=y_listbox_y, relwidth=y_listbox_w, anchor=tk.N)
+        self._y_listbox.config(background=config.widget_bg_color, foreground=config.text_color, 
+                               relief=config.relief, borderwidth=config.border_width)
+        self._y_listbox.insert(0, self._listbox_default_string)
         self._y_listbox.bind("<ButtonRelease-1>", self._set_active_y)
         self._y_listbox.bind("<Up>", self._listbox_key_up)
         self._y_listbox.bind("<Down>", self._listbox_key_down)
         self._y_listbox.bind('<FocusOut>', lambda e: self.selection_clear(0, tk.END))
+
+        # initialize set x-data button
+        x_set_button_x, x_set_button_y, x_set_button_w, x_set_button_h = 0.14, 0.84, 0.10, 0.04
+        self._x_set_button = ttk.Button(self._frame, text="Set", command=self._set_x)
+        self._x_set_button.place(relx=x_set_button_x, rely=x_set_button_y, relwidth=x_set_button_w, relheight=x_set_button_h)
+
+        # initialize reset x-data button
+        x_reset_button_x, x_reset_button_y, x_reset_button_w, x_reset_button_h = 0.26, 0.84, 0.10, 0.04
+        self._x_reset_button = ttk.Button(self._frame, text="Reset", command=self._reset_x)
+        self._x_reset_button.place(relx=x_reset_button_x, rely=x_reset_button_y, relwidth=x_reset_button_w, relheight=x_reset_button_h)
+        
+        # initialize set y-data button
+        y_add_button_x, y_add_button_y, y_add_button_w, y_add_button_h = 0.64, 0.84, 0.10, 0.04
+        self._y_add_button = ttk.Button(self._frame, text="Add", command=self._add_y)
+        self._y_add_button.place(relx=y_add_button_x, rely=y_add_button_y, relwidth=y_add_button_w, relheight=y_add_button_h)
+        
+        # initialize reset y-data button
+        y_delete_button_x, y_delete_button_y, y_delete_button_w, y_delete_button_h = 0.76, 0.84, 0.10, 0.04
+        self._y_delete_button = ttk.Button(self._frame, text="Delete", command=self._delete_y)
+        self._y_delete_button.place(relx=y_delete_button_x, rely=y_delete_button_y, relwidth=y_delete_button_w, relheight=y_delete_button_h) 
 
         # create a canvas for holding a number of TableColumns to form a table
         self._canvas = None
@@ -185,42 +118,6 @@ class EmbeddedTable() :
         self._active_indices = []
         self._n_req_indices = 3
         self._active_y_index = -1
-
-        # initialize set x-data button
-        self._x_set_button = ttk.Button(self._frame, 
-                                        text=self._x_set_button_text, 
-                                        command=self._set_x)
-        self._x_set_button.place(relx=self._x_set_button_x, 
-                                 rely=self._x_set_button_y, 
-                                 relwidth=self._x_set_button_w, 
-                                 relheight=self._x_set_button_h)
-
-        # initialize reset x-data button
-        self._x_reset_button = ttk.Button(self._frame, 
-                                          text=self._x_reset_button_text, 
-                                          command=self._reset_x)
-        self._x_reset_button.place(relx=self._x_reset_button_x, 
-                                   rely=self._x_reset_button_y, 
-                                   relwidth=self._x_reset_button_w,
-                                   relheight=self._x_reset_button_h)
-        
-        # initialize set y-data button
-        self._y_add_button = ttk.Button(self._frame, 
-                                        text=self._y_add_button_text, 
-                                        command=self._add_y)
-        self._y_add_button.place(relx=self._y_add_button_x, 
-                                 rely=self._y_add_button_y, 
-                                 relwidth=self._y_add_button_w, 
-                                 relheight=self._y_add_button_h)
-        
-        # initialize reset y-data button
-        self._y_delete_button = ttk.Button(self._frame, 
-                                           text=self._y_delete_button_text, 
-                                           command=self._delete_y)
-        self._y_delete_button.place(relx=self._y_delete_button_x, 
-                                    rely=self._y_delete_button_y, 
-                                    relwidth=self._y_delete_button_w, 
-                                    relheight=self._y_delete_button_h) 
 
     def open(self, filename: str) -> None:
         """Open the file at the passed file path."""
@@ -238,11 +135,7 @@ class EmbeddedTable() :
         if df is not None:
             self._populate(df)
 
-    def save(self, filename: str) -> None:
-        """Saves the existing data."""
-        self._data.save(filename)
-
-    def clear(self, clear_df=False) -> None:
+    def clear(self) -> None:
         """Clear all table and selection data."""
         if self._canvas is not None:
             self._canvas = self._canvas.destroy()
@@ -374,7 +267,8 @@ class EmbeddedTable() :
                 self._canvas.create_window(i*(self._column_width+config.text_pad), 0, height=0, width=0, window=column, anchor=tk.NW)
                 self._table_columns.append(column)
             # configure the canvas
-            self._canvas.place(relx=self._canvas_x, rely=self._canvas_y, relwidth=self._canvas_w, relheight=self._canvas_h)
+            canvas_x, canvas_y, canvas_w, canvas_h = 0.01, 0.01, 0.98, 0.98
+            self._canvas.place(relx=canvas_x, rely=canvas_y, relwidth=canvas_w, relheight=canvas_h)
             self._canvas.config(yscrollcommand=self._v_scrollbar.set, 
                                 xscrollcommand=self._h_scrollbar.set, 
                                 scrollregion=self._canvas.bbox(tk.ALL))
@@ -396,7 +290,6 @@ class EmbeddedTable() :
         if self._df is not None:
             col = event.widget.get_index()
             rows = list(event.widget.curselection())
-            print(col, rows)
             # single-selection logic
             # selects all numeric values below until next non-numeric value
             if len(rows) == 1:
@@ -469,7 +362,7 @@ class EmbeddedTable() :
         if 'x' in self._indices.keys():
             self._indices.pop('x')
         self._x_listbox.delete(0)
-        self._x_listbox.insert(0, self._x_listbox_default_string)
+        self._x_listbox.insert(0, self._listbox_default_string)
 
     def _delete_y(self, event=None) -> None:
         """Clear the most recent selected y-data."""
@@ -487,6 +380,6 @@ class EmbeddedTable() :
             self._y_listbox.delete(self._active_y_index)
         # insert default text if listbox is empty
         if self._y_listbox.size() == 0:
-            self._y_listbox.insert(0, self._y_listbox_default_string)
+            self._y_listbox.insert(0, self._listbox_default_string)
         # reset active index
         self._active_y_index = -1
