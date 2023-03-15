@@ -308,23 +308,35 @@ class EmbeddedTable() :
         """Populate the table with data given by the passed DataFrame"""
         if df is not None:
             self.clear()
+
             # replace NaNs with empty strings
             self._df = df.copy().fillna('')
             n_rows = len(df.index)
+
             # create canvas to display columns
             self._canvas = tk.Canvas(self._canvas_frame)
             self._canvas.config(background=config.widget_bg_color, highlightthickness=0, borderwidth=0)
             self._canvas.bind("<MouseWheel>",
                 lambda e: "break" if self._canvas is None else self._canvas.yview_scroll(int(-e.delta/self._scroll_div), tk.UNITS))
+            
+            # container for columns
+            column_frame = ttk.Frame(self._canvas)
+            column_frame.bind("<MouseWheel>",
+                lambda e: "break" if self._canvas is None else self._canvas.yview_scroll(int(-e.delta/self._scroll_div), tk.UNITS))
+            
             # create all columns
             self._table_columns = []
             n_cols = len(df.columns)
             for i in range(n_cols):
-                column = TableColumn(self._canvas, i, justify=tk.LEFT, selectmode=tk.EXTENDED,
+
+                # create a column
+                column = TableColumn(column_frame, i, justify=tk.LEFT, selectmode=tk.EXTENDED,
                                      height=0, width=0, activestyle=tk.NONE, font=self._font)
                 column.bind("<MouseWheel>",
                     lambda e: "break" if self._canvas is None else self._canvas.yview_scroll(int(-e.delta/self._scroll_div), tk.UNITS))
                 column.bind("<ButtonRelease-1>", self._get_table_selection)
+
+                # fill with values
                 for j in range(n_rows):
                     try:
                         val = str(round(float(self._df.iloc[j, i]), self._text_round))
@@ -332,9 +344,12 @@ class EmbeddedTable() :
                         val = self._df.iloc[j, i]
                     val = val[:self._column_max_char]
                     column.insert(j, val)
-                # add column to canvas
-                self._canvas.create_window(i*(self._column_width+config.text_pad), 0, height=0, width=0, window=column, anchor=tk.NW)
                 self._table_columns.append(column)
+                column.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
+            # add frame to canvas
+            self._canvas.create_window(0, 0, height=0, width=0, window=column_frame, anchor=tk.NW)
+            column_frame.bind("<Configure>", lambda e: self._canvas.configure(scrollregion=self._canvas.bbox("all")))
             # configure the canvas
             canvas_x, canvas_y, canvas_w, canvas_h = 0.01, 0.01, 0.98, 0.98
             self._canvas.place(relx=canvas_x, rely=canvas_y, relwidth=canvas_w, relheight=canvas_h)
