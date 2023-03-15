@@ -18,115 +18,6 @@ import classes.config as config
 
 class EmbeddedPlot() :
 
-    # canvas params
-    _canvas_x = 0.00
-    _canvas_y = 0.00
-    _canvas_w = 1.00
-    _canvas_h = 0.80
-
-    # button panel frame
-    _button_frame_x = 0.00
-    _button_frame_y = 0.81
-    _button_frame_w = 1.00
-    _button_frame_h = 0.19
-
-    # update button params
-    _update_button_x = 0.00
-    _update_button_y = 0.00
-    _update_button_w = 0.24
-    _update_button_h = 0.22
-    _update_button_text = 'Update'
-
-    # save button params
-    _save_button_x = 0.00
-    _save_button_y = 0.25
-    _save_button_w = 0.24
-    _save_button_h = 0.22
-    _save_button_text = 'Save'
-
-    # save button params
-    _clear_button_x = 0.00
-    _clear_button_y = 0.50
-    _clear_button_w = 0.24
-    _clear_button_h = 0.22
-    _clear_button_text = 'Clear'
-
-    # toggle raw data button params
-    _toggle_raw_data_button_x = 0.25
-    _toggle_raw_data_button_y = 0.00
-    _toggle_raw_data_button_w = 0.24
-    _toggle_raw_data_button_h = 0.22
-    _toggle_raw_data_button_text = 'Toggle Raw Data'
-
-    # toggle tool data button params
-    _toggle_tool_data_button_x = 0.25
-    _toggle_tool_data_button_y = 0.25
-    _toggle_tool_data_button_w = 0.24
-    _toggle_tool_data_button_h = 0.22
-    _toggle_tool_data_button_text = 'Toggle Tool Data'
-
-    # toggle selected data button params
-    _toggle_selected_data_button_x = 0.25
-    _toggle_selected_data_button_y = 0.50
-    _toggle_selected_data_button_w = 0.24
-    _toggle_selected_data_button_h = 0.22
-    _toggle_selected_data_button_text = 'Toggle Selections'
-
-    # entry box
-    _entry_x = 0.50
-    _entry_y = 0.00
-    _entry_w = 0.50
-    _entry_h = 0.22
-
-    # set x label button params
-    _title_button_x = 0.50
-    _title_button_y = 0.25
-    _title_button_w = 0.16
-    _title_button_h = 0.22
-    _title_button_text = 'Set Title'
-
-    # set x label button params
-    _x_label_button_x = 0.67
-    _x_label_button_y = 0.25
-    _x_label_button_w = 0.16
-    _x_label_button_h = 0.22
-    _x_label_button_text = 'Set X Label'
-
-    # set x limit button params
-    _x_lim_button_x = 0.67
-    _x_lim_button_y = 0.50
-    _x_lim_button_w = 0.16
-    _x_lim_button_h = 0.22
-    _x_lim_button_text = 'Set X Limits'
-
-    # set x tick button params
-    _x_tick_button_x = 0.67
-    _x_tick_button_y = 0.75
-    _x_tick_button_w = 0.16
-    _x_tick_button_h = 0.22
-    _x_tick_button_text = 'Set X Ticks'
-
-    # set y label button params
-    _y_label_button_x = 0.84
-    _y_label_button_y = 0.25
-    _y_label_button_w = 0.16
-    _y_label_button_h = 0.22
-    _y_label_button_text = 'Set Y Label'
-
-    # set y limit button params
-    _y_lim_button_x = 0.84
-    _y_lim_button_y = 0.50
-    _y_lim_button_w = 0.16
-    _y_lim_button_h = 0.22
-    _y_lim_button_text = 'Set Y Limits'
-
-    # set y tick button params
-    _y_tick_button_x = 0.84
-    _y_tick_button_y = 0.75
-    _y_tick_button_w = 0.16
-    _y_tick_button_h = 0.22
-    _y_tick_button_text = 'Set Y Ticks'
-
     def __init__(self, parent, x, y, w, h):
 
         # create a container for the plot
@@ -139,11 +30,9 @@ class EmbeddedPlot() :
         self._plot = None
 
         # create a frame around canvas for visual effect
+        canvas_frame_x, canvas_frame_y, canvas_frame_w, canvas_frame_h = 0.00, 0.00, 1.00, 0.80
         self._canvas_frame = ttk.Frame(self._frame, style='Bordered.TFrame')
-        self._canvas_frame.place(relx=self._canvas_x, 
-                                 rely=self._canvas_y, 
-                                 relwidth=self._canvas_w, 
-                                 relheight=self._canvas_h)
+        self._canvas_frame.place(relx=canvas_frame_x, rely=canvas_frame_y, relwidth=canvas_frame_w, relheight=canvas_frame_h)
         
         # create the canvas
         self._canvas = FigureCanvasTkAgg(self._fig, master=self._canvas_frame) 
@@ -165,149 +54,93 @@ class EmbeddedPlot() :
         self._do_point_selection = False
 
         # create frame for placing buttons
+        button_frame_x, button_frame_y, button_frame_w, button_frame_h = 0.00, 0.81, 1.00, 0.19
         self._button_frame = ttk.Frame(self._frame)
-        self._button_frame.place(relx=self._button_frame_x, 
-                                 rely=self._button_frame_y, 
-                                 relwidth=self._button_frame_w, 
-                                 relheight=self._button_frame_h)
+        self._button_frame.place(relx=button_frame_x, rely=button_frame_y, relwidth=button_frame_w, relheight=button_frame_h)
 
         # for requesting input
+        entry_x, entry_y, entry_w, entry_h = 0.50, 0.00, 0.50, 0.22
         self._entry = ttk.Entry(self._button_frame)
-        self._entry.place(relx=self._entry_x, 
-                          rely=self._entry_y, 
-                          relwidth=self._entry_w, 
-                          relheight=self._entry_h)
+        self._entry.place(relx=entry_x, rely=entry_y, relwidth=entry_w, relheight=entry_h)
 
         # initialize update button, set command in App class
-        self._update_button = ttk.Button(self._button_frame, 
-                                         text=self._update_button_text, 
-                                         command=None)
-        self._update_button.place(relx=self._update_button_x, 
-                                  rely=self._update_button_y, 
-                                  relwidth=self._update_button_w, 
-                                  relheight=self._update_button_h)
+        update_button_x, update_button_y, update_button_w, update_button_h = 0.00, 0.00, 0.24, 0.22
+        self._update_button = ttk.Button(self._button_frame, text='Update', command=None)
+        self._update_button.place(relx=update_button_x, rely=update_button_y, relwidth=update_button_w, relheight=update_button_h)
         
         # initialize save button, set command in App class
-        self._save_button = ttk.Button(self._button_frame, 
-                                       text=self._save_button_text, 
-                                       command=None)
-        self._save_button.place(relx=self._save_button_x, 
-                                rely=self._save_button_y, 
-                                relwidth=self._save_button_w, 
-                                relheight=self._save_button_h)
+        save_button_x, save_button_y, save_button_w, save_button_h = 0.00, 0.25, 0.24, 0.22
+        self._save_button = ttk.Button(self._button_frame, text='Save', command=None)
+        self._save_button.place(relx=save_button_x, rely=save_button_y, relwidth=save_button_w, relheight=save_button_h)
         
         # initialize clear button
-        self._clear_button = ttk.Button(self._button_frame, 
-                                        text=self._clear_button_text, 
-                                        command=self.clear)
-        self._clear_button.place(relx=self._clear_button_x,
-                                 rely=self._clear_button_y, 
-                                 relwidth=self._clear_button_w, 
-                                 relheight=self._clear_button_h)
+        clear_button_x, clear_button_y, clear_button_w, clear_button_h = 0.00, 0.50, 0.24, 0.22
+        self._clear_button = ttk.Button(self._button_frame, text='Clear', command=self.clear)
+        self._clear_button.place(relx=clear_button_x, rely=clear_button_y, relwidth=clear_button_w, relheight=clear_button_h)
         
         # initialize raw data toggle button
         self._do_raw_data = True
-        self._toggle_raw_data_button = ttk.Button(self._button_frame, 
-                                                  text=self._toggle_raw_data_button_text, 
-                                                  command=self._toggle_raw_data)
-        self._toggle_raw_data_button.place(relx=self._toggle_raw_data_button_x,
-                                           rely=self._toggle_raw_data_button_y, 
-                                           relwidth=self._toggle_raw_data_button_w, 
-                                           relheight=self._toggle_raw_data_button_h)
+        raw_button_x, raw_button_y, raw_button_w, raw_button_h = 0.25, 0.00, 0.24, 0.22
+        self._toggle_raw_data_button = ttk.Button(self._button_frame, text='Toggle Raw Data', command=self._toggle_raw_data)
+        self._toggle_raw_data_button.place(relx=raw_button_x, rely=raw_button_y, relwidth=raw_button_w, relheight=raw_button_h)
         
         # initialize tool data toggle button
         self._do_tool_data = True
-        self._toggle_tool_data_button = ttk.Button(self._button_frame, 
-                                                   text=self._toggle_tool_data_button_text, 
-                                                   command=self._toggle_tool_data)
-        self._toggle_tool_data_button.place(relx=self._toggle_tool_data_button_x,
-                                            rely=self._toggle_tool_data_button_y,
-                                            relwidth=self._toggle_tool_data_button_w,
-                                            relheight=self._toggle_tool_data_button_h)
+        tool_button_x, tool_button_y, tool_button_w, tool_button_h = 0.25, 0.25, 0.24, 0.22
+        self._toggle_tool_data_button = ttk.Button(self._button_frame, text='Toggle Tool Data', command=self._toggle_tool_data)
+        self._toggle_tool_data_button.place(relx=tool_button_x, rely=tool_button_y, relwidth=tool_button_w, relheight=tool_button_h)
 
         # initialize selected data toggle button
         self._do_selected_data = True
-        self._toggle_selected_data_button = ttk.Button(self._button_frame, 
-                                                       text=self._toggle_selected_data_button_text, 
-                                                       command=self._toggle_selected_data)
-        self._toggle_selected_data_button.place(relx=self._toggle_selected_data_button_x, 
-                                                rely=self._toggle_selected_data_button_y, 
-                                                relwidth=self._toggle_selected_data_button_w, 
-                                                relheight=self._toggle_selected_data_button_h)
+        selected_button_x, selected_button_y, selected_button_w, selected_button_h = 0.25, 0.50, 0.24, 0.22
+        self._toggle_selected_data_button = ttk.Button(self._button_frame, text='Toggle Selections', command=self._toggle_selected_data)
+        self._toggle_selected_data_button.place(relx=selected_button_x, rely=selected_button_y, relwidth=selected_button_w, relheight=selected_button_h)
         
         # initialize title set button
         self._title = ''
-        self._title_button = ttk.Button(self._button_frame, 
-                                        text=self._title_button_text, 
-                                        command=self._set_title)
-        self._title_button.place(relx=self._title_button_x, 
-                                 rely=self._title_button_y, 
-                                 relwidth=self._title_button_w, 
-                                 relheight=self._title_button_h)
+        title_button_x, title_button_y, title_button_w, title_button_h = 0.50, 0.25, 0.16, 0.22
+        self._title_button = ttk.Button(self._button_frame, text='Set Title', command=self._set_title)
+        self._title_button.place(relx=title_button_x, rely=title_button_y, relwidth=title_button_w, relheight=title_button_h)
         
         # initialize x-label set button
         self._x_label = ''
-        self._x_label_button = ttk.Button(self._button_frame, 
-                                          text=self._x_label_button_text, 
-                                          command=self._set_x_label)
-        self._x_label_button.place(relx=self._x_label_button_x, 
-                                   rely=self._x_label_button_y, 
-                                   relwidth=self._x_label_button_w, 
-                                   relheight=self._x_label_button_h)
+        x_label_button_x, x_label_button_y, x_label_button_w, x_label_button_h = 0.67, 0.25, 0.16, 0.22
+        self._x_label_button = ttk.Button(self._button_frame, text='Set X Label', command=self._set_x_label)
+        self._x_label_button.place(relx=x_label_button_x, rely=x_label_button_y, relwidth=x_label_button_w, relheight=x_label_button_h)
         
         # initialize x-limit set button
         self._x_lim_min = 0
         self._x_lim_max = 0
-        self._x_lim_button = ttk.Button(self._button_frame, 
-                                        text=self._x_lim_button_text, 
-                                        command=self._set_x_limits)
-        self._x_lim_button.place(relx=self._x_lim_button_x, 
-                                 rely=self._x_lim_button_y, 
-                                 relwidth=self._x_lim_button_w, 
-                                 relheight=self._x_lim_button_h)
+        x_lim_button_x, x_lim_button_y, x_lim_button_w, x_lim_button_h = 0.67, 0.50, 0.16, 0.22
+        self._x_lim_button = ttk.Button(self._button_frame, text='Set X Limits', command=self._set_x_limits)
+        self._x_lim_button.place(relx=x_lim_button_x, rely=x_lim_button_y, relwidth=x_lim_button_w, relheight=x_lim_button_h)
        
         # initialize x-tick set button
         self._x_tick_vals = []
         self._x_tick_strs = []
-        self._x_tick_button = ttk.Button(self._button_frame,
-                                         text=self._x_tick_button_text, 
-                                         command=self._set_x_ticks)
-        self._x_tick_button.place(relx=self._x_tick_button_x, 
-                                  rely=self._x_tick_button_y, 
-                                  relwidth=self._x_tick_button_w, 
-                                  relheight=self._x_tick_button_h)
+        x_tick_button_x, x_tick_button_y, x_tick_button_w, x_tick_button_h = 0.67, 0.75, 0.16, 0.22
+        self._x_tick_button = ttk.Button(self._button_frame, text='Set X Ticks', command=self._set_x_ticks)
+        self._x_tick_button.place(relx=x_tick_button_x, rely=x_tick_button_y, relwidth=x_tick_button_w, relheight=x_tick_button_h)
         
         # initialize y-label set button
         self._y_label = ''
-        self._y_label_button = ttk.Button(self._button_frame, 
-                                          text=self._y_label_button_text, 
-                                          command=self._set_y_label)
-        self._y_label_button.place(relx=self._y_label_button_x, 
-                                   rely=self._y_label_button_y, 
-                                   relwidth=self._y_label_button_w, 
-                                   relheight=self._y_label_button_h)
+        y_label_button_x, y_label_button_y, y_label_button_w, y_label_button_h = 0.84, 0.25, 0.16, 0.22
+        self._y_label_button = ttk.Button(self._button_frame, text='Set Y Label', command=self._set_y_label)
+        self._y_label_button.place(relx=y_label_button_x, rely=y_label_button_y, relwidth=y_label_button_w, relheight=y_label_button_h)
         
         # initialize x-limit set button
         self._y_lim_min = 0
         self._y_lim_max = 0
-        self._y_lim_button = ttk.Button(self._button_frame, 
-                                        text=self._y_lim_button_text, 
-                                        command=self._set_y_limits)
-        self._y_lim_button.place(relx=self._y_lim_button_x, 
-                                 rely=self._y_lim_button_y, 
-                                 relwidth=self._y_lim_button_w, 
-                                 relheight=self._y_lim_button_h)
+        y_lim_button_x, y_lim_button_y, y_lim_button_w, y_lim_button_h = 0.84, 0.50, 0.16, 0.22
+        self._y_lim_button = ttk.Button(self._button_frame, text='Set Y Limits', command=self._set_y_limits)
+        self._y_lim_button.place(relx=y_lim_button_x, rely=y_lim_button_y, relwidth=y_lim_button_w, relheight=y_lim_button_h)
         
         # initialize x-tick set button
         self._y_tick_vals = []
         self._y_tick_strs = []
-        self._y_tick_button = ttk.Button(self._button_frame,
-                                         text=self._y_tick_button_text, 
-                                         command=self._set_y_ticks)
-        self._y_tick_button.place(relx=self._y_tick_button_x, 
-                                  rely=self._y_tick_button_y, 
-                                  relwidth=self._y_tick_button_w, 
-                                  relheight=self._y_tick_button_h)
+        y_tick_button_x, y_tick_button_y, y_tick_button_w, y_tick_button_h = 0.84, 0.75, 0.16, 0.22
+        self._y_tick_button = ttk.Button(self._button_frame, text='Set Y Ticks', command=self._set_y_ticks)
+        self._y_tick_button.place(relx=y_tick_button_x, rely=y_tick_button_y, relwidth=y_tick_button_w, relheight=y_tick_button_h)
 
     def draw(self, x, y_list, y_tool_pts_list=None) -> None:
         """Clears the existing plot and draws passed data."""
