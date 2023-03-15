@@ -19,7 +19,7 @@ import classes.config as config
 class EmbeddedTable() :
 
     # font params
-    _text_size  = 13
+    _text_size  = 10
     _text_round = 6 # digits to round to in table
 
     # x-data add button params
@@ -52,7 +52,7 @@ class EmbeddedTable() :
         # align to the right of the canvas with the same height
         v_scrollbar_x, v_scrollbar_y, v_scrollbar_w, v_scrollbar_h = 0.985, 0.000, 0.015, 0.800
         self._v_scrollbar = ttk.Scrollbar(self._frame, orient=tk.VERTICAL, 
-                                          command=lambda _, x: "break" if self._canvas is None else self._canvas.yview_moveto(x))
+                                          command=lambda *args: "break" if self._canvas is None else self._canvas.yview(*args))
         self._v_scrollbar.place(relx=v_scrollbar_x, rely=v_scrollbar_y, relwidth=v_scrollbar_w, relheight=v_scrollbar_h)
         self._v_scrollbar.bind("<ButtonPress-1>", self._scrollbar_v_click)
 
@@ -60,7 +60,7 @@ class EmbeddedTable() :
         # align beneath the table canvas with the same width
         h_scrollbar_x, h_scrollbar_y, h_scrollbar_w, h_scrollbar_h = 0.000, 0.805, 0.980, 0.015
         self._h_scrollbar = ttk.Scrollbar(self._frame, orient=tk.HORIZONTAL,
-                                          command=lambda _, x: "break" if self._canvas is None else self._canvas.xview_moveto(x))
+                                          command=lambda args: "break" if self._canvas is None else self._canvas.xview(*args))
         self._h_scrollbar.place(relx=h_scrollbar_x, rely=h_scrollbar_y, relwidth=h_scrollbar_w, relheight=h_scrollbar_h)
         self._h_scrollbar.bind("<ButtonPress-1>", self._scrollbar_h_click)
 
