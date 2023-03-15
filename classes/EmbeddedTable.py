@@ -89,22 +89,32 @@ class EmbeddedTable() :
         self._y_listbox.bind("<Down>", self._listbox_key_down)
 
         # initialize set x-data button
-        x_set_button_x, x_set_button_y, x_set_button_w, x_set_button_h = 0.14, 0.84, 0.10, 0.04
+        x_set_button_x, x_set_button_y, x_set_button_w, x_set_button_h = 0.09, 0.84, 0.10, 0.04
         self._x_set_button = ttk.Button(self._frame, text="Set", command=self._set_x)
         self._x_set_button.place(relx=x_set_button_x, rely=x_set_button_y, relwidth=x_set_button_w, relheight=x_set_button_h)
 
+        # initialize x-enter button
+        x_enter_button_x, x_enter_button_y, x_enter_button_w, x_enter_button_h = 0.20, 0.84, 0.10, 0.04
+        self._x_enter_button = ttk.Button(self._frame, text="Enter", command=self._enter_x)
+        self._x_enter_button.place(relx=x_enter_button_x, rely=x_enter_button_y, relwidth=x_enter_button_w, relheight=x_enter_button_h)
+
         # initialize reset x-data button
-        x_reset_button_x, x_reset_button_y, x_reset_button_w, x_reset_button_h = 0.26, 0.84, 0.10, 0.04
+        x_reset_button_x, x_reset_button_y, x_reset_button_w, x_reset_button_h = 0.31, 0.84, 0.10, 0.04
         self._x_reset_button = ttk.Button(self._frame, text="Reset", command=self._reset_x)
         self._x_reset_button.place(relx=x_reset_button_x, rely=x_reset_button_y, relwidth=x_reset_button_w, relheight=x_reset_button_h)
         
         # initialize set y-data button
-        y_add_button_x, y_add_button_y, y_add_button_w, y_add_button_h = 0.64, 0.84, 0.10, 0.04
+        y_add_button_x, y_add_button_y, y_add_button_w, y_add_button_h = 0.59, 0.84, 0.10, 0.04
         self._y_add_button = ttk.Button(self._frame, text="Add", command=self._add_y)
         self._y_add_button.place(relx=y_add_button_x, rely=y_add_button_y, relwidth=y_add_button_w, relheight=y_add_button_h)
+
+        # initialize y-enter button
+        y_enter_button_x, y_enter_button_y, y_enter_button_w, y_enter_button_h = 0.70, 0.84, 0.10, 0.04
+        self._y_enter_button = ttk.Button(self._frame, text="Enter", command=self._enter_y)
+        self._y_enter_button.place(relx=y_enter_button_x, rely=y_enter_button_y, relwidth=y_enter_button_w, relheight=y_enter_button_h)
         
         # initialize reset y-data button
-        y_delete_button_x, y_delete_button_y, y_delete_button_w, y_delete_button_h = 0.76, 0.84, 0.10, 0.04
+        y_delete_button_x, y_delete_button_y, y_delete_button_w, y_delete_button_h = 0.81, 0.84, 0.10, 0.04
         self._y_delete_button = ttk.Button(self._frame, text="Delete", command=self._delete_y)
         self._y_delete_button.place(relx=y_delete_button_x, rely=y_delete_button_y, relwidth=y_delete_button_w, relheight=y_delete_button_h) 
 
@@ -187,7 +197,7 @@ class EmbeddedTable() :
             self._active_indices = []
         return valid
 
-    def _set_x(self, event=None) -> None:
+    def _set_x(self) -> None:
         """Get the active table selections and assign to the active x-data."""
         if self._validate_active_data():
             # update the stored x-indices
@@ -200,7 +210,11 @@ class EmbeddedTable() :
             self._x_listbox.delete(0)
             self._x_listbox.insert(0, s)
 
-    def _add_y(self, event=None) -> None:
+    def _enter_x(self) -> None:
+        """Get the active table selections and assign to the active x-data."""
+        return "break"
+
+    def _add_y(self) -> None:
         """Get the active table selections and append to the active y-data."""
         if self._validate_active_data():
             # update the stored y-indices
@@ -216,14 +230,18 @@ class EmbeddedTable() :
             s = f'col:{col+1}; row:{y0+1}-{y1}'
             self._y_listbox.insert(tk.END, s)
 
-    def _reset_x(self, event=None) -> None:
+    def _reset_x(self) -> None:
         """Clear the currently selected x-data."""
         if 'x' in self._indices.keys():
             self._indices.pop('x')
         self._x_listbox.delete(0, tk.END)
         self._x_listbox.insert(0, self._listbox_default_string)
 
-    def _delete_y(self, event=None) -> None:
+    def _enter_y(self) -> None:
+        """Get the active table selections and assign to the active x-data."""
+        return "break"
+
+    def _delete_y(self) -> None:
         """Clear the most recent selected y-data."""
         # clear the active/bottom entry in the internal data
         if 'y' in self._indices.keys():
