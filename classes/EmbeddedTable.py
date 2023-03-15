@@ -60,7 +60,7 @@ class EmbeddedTable() :
         # align beneath the table canvas with the same width
         h_scrollbar_x, h_scrollbar_y, h_scrollbar_w, h_scrollbar_h = 0.000, 0.805, 0.980, 0.015
         self._h_scrollbar = ttk.Scrollbar(self._frame, orient=tk.HORIZONTAL,
-                                          command=lambda args: "break" if self._canvas is None else self._canvas.xview(*args))
+                                          command=lambda *args: "break" if self._canvas is None else self._canvas.xview(*args))
         self._h_scrollbar.place(relx=h_scrollbar_x, rely=h_scrollbar_y, relwidth=h_scrollbar_w, relheight=h_scrollbar_h)
         self._h_scrollbar.bind("<ButtonPress-1>", self._scrollbar_h_click)
 
