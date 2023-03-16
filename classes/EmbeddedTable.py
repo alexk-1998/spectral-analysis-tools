@@ -22,9 +22,6 @@ class EmbeddedTable() :
     _text_size  = 10
     _text_round = 6 # digits to round to in table
 
-    # x-data add button params
-    _listbox_default_string = 'no data'
-
     def __init__(self, parent, x, y, w, h):
 
         # determine OS for proper scrolling on MacOS
@@ -73,7 +70,7 @@ class EmbeddedTable() :
         self._x_listbox.place(relx=x_listbox_x, rely=x_listbox_y, relwidth=x_listbox_w, anchor=tk.N)
         self._x_listbox.config(background=config.widget_bg_color, foreground=config.text_color, 
                                relief=config.relief, borderwidth=config.border_width)
-        self._x_listbox.insert(0, self._listbox_default_string)
+        self._x_listbox.bind("<Double-1>", self._start_edit)
         
         # listbox for showing active y-data
         y_listbox_x, y_listbox_y, y_listbox_w = 0.75, 0.89, 0.30
@@ -84,37 +81,27 @@ class EmbeddedTable() :
         self._y_listbox.place(relx=y_listbox_x, rely=y_listbox_y, relwidth=y_listbox_w, anchor=tk.N)
         self._y_listbox.config(background=config.widget_bg_color, foreground=config.text_color, 
                                relief=config.relief, borderwidth=config.border_width)
-        self._y_listbox.insert(0, self._listbox_default_string)
         self._y_listbox.bind("<Up>", self._listbox_key_up)
         self._y_listbox.bind("<Down>", self._listbox_key_down)
+        self._y_listbox.bind("<Double-1>", self._start_edit)
 
         # initialize set x-data button
-        x_set_button_x, x_set_button_y, x_set_button_w, x_set_button_h = 0.09, 0.84, 0.10, 0.04
+        x_set_button_x, x_set_button_y, x_set_button_w, x_set_button_h = 0.14, 0.84, 0.10, 0.04
         self._x_set_button = ttk.Button(self._frame, text="Set", command=self._set_x)
         self._x_set_button.place(relx=x_set_button_x, rely=x_set_button_y, relwidth=x_set_button_w, relheight=x_set_button_h)
 
-        # initialize x-enter button
-        x_enter_button_x, x_enter_button_y, x_enter_button_w, x_enter_button_h = 0.20, 0.84, 0.10, 0.04
-        self._x_enter_button = ttk.Button(self._frame, text="Enter", command=self._enter_x)
-        self._x_enter_button.place(relx=x_enter_button_x, rely=x_enter_button_y, relwidth=x_enter_button_w, relheight=x_enter_button_h)
-
         # initialize reset x-data button
-        x_reset_button_x, x_reset_button_y, x_reset_button_w, x_reset_button_h = 0.31, 0.84, 0.10, 0.04
+        x_reset_button_x, x_reset_button_y, x_reset_button_w, x_reset_button_h = 0.26, 0.84, 0.10, 0.04
         self._x_reset_button = ttk.Button(self._frame, text="Reset", command=self._reset_x)
         self._x_reset_button.place(relx=x_reset_button_x, rely=x_reset_button_y, relwidth=x_reset_button_w, relheight=x_reset_button_h)
         
         # initialize set y-data button
-        y_add_button_x, y_add_button_y, y_add_button_w, y_add_button_h = 0.59, 0.84, 0.10, 0.04
+        y_add_button_x, y_add_button_y, y_add_button_w, y_add_button_h = 0.64, 0.84, 0.10, 0.04
         self._y_add_button = ttk.Button(self._frame, text="Add", command=self._add_y)
         self._y_add_button.place(relx=y_add_button_x, rely=y_add_button_y, relwidth=y_add_button_w, relheight=y_add_button_h)
-
-        # initialize y-enter button
-        y_enter_button_x, y_enter_button_y, y_enter_button_w, y_enter_button_h = 0.70, 0.84, 0.10, 0.04
-        self._y_enter_button = ttk.Button(self._frame, text="Enter", command=self._enter_y)
-        self._y_enter_button.place(relx=y_enter_button_x, rely=y_enter_button_y, relwidth=y_enter_button_w, relheight=y_enter_button_h)
         
         # initialize reset y-data button
-        y_delete_button_x, y_delete_button_y, y_delete_button_w, y_delete_button_h = 0.81, 0.84, 0.10, 0.04
+        y_delete_button_x, y_delete_button_y, y_delete_button_w, y_delete_button_h = 0.76, 0.84, 0.10, 0.04
         self._y_delete_button = ttk.Button(self._frame, text="Delete", command=self._delete_y)
         self._y_delete_button.place(relx=y_delete_button_x, rely=y_delete_button_y, relwidth=y_delete_button_w, relheight=y_delete_button_h) 
 
@@ -150,9 +137,7 @@ class EmbeddedTable() :
             self._canvas = self._canvas.destroy()
         self._table_columns = []
         self._x_listbox.delete(0, tk.END)
-        self._x_listbox.insert(0, self._listbox_default_string)
         self._y_listbox.delete(0, tk.END)
-        self._y_listbox.insert(0, self._listbox_default_string)
         self._df = None
         self._frame.update_idletasks()
 
@@ -176,19 +161,14 @@ class EmbeddedTable() :
             col = self._indices['x'][2]
             # delete existing text and overwrite
             s = f'col:{col+1}; row:{x0+1}-{x1}'
-            self._x_listbox.delete(0)
+            self._x_listbox.delete(0, tk.END)
             self._x_listbox.insert(0, s)
-
-    def _enter_x(self) -> None:
-        """Get the active table selections and assign to the active x-data."""
-        return "break"
     
     def _reset_x(self) -> None:
         """Clear the currently selected x-data."""
         if 'x' in self._indices.keys():
             self._indices.pop('x')
         self._x_listbox.delete(0, tk.END)
-        self._x_listbox.insert(0, self._listbox_default_string)
 
     def get_y(self) -> list:
         """Return the currently selected y-data."""
@@ -201,7 +181,7 @@ class EmbeddedTable() :
                 y_vals.append(self._df.iloc[y0:y1, col].to_numpy())
         return y_vals
 
-    def _add_y(self) -> None:
+    def _add_y(self, idx=-1) -> None:
         """Get the active table selections and append to the active y-data."""
         if self._validate_active_data():
             # update the stored y-indices
@@ -209,38 +189,43 @@ class EmbeddedTable() :
                 self._indices['y'].append(self._active_indices.copy())
             else:
                 self._indices['y'] = [self._active_indices.copy()]
-                self._y_listbox.delete(0) # delete default text
             y0 = self._indices['y'][-1][0]
             y1 = self._indices['y'][-1][1]
             col = self._indices['y'][-1][2]
             # delete existing text and overwrite
             s = f'col:{col+1}; row:{y0+1}-{y1}'
-            self._y_listbox.insert(tk.END, s)
-
-    def _enter_y(self) -> None:
-        """Get the active table selections and assign to the active x-data."""
-        return "break"
+            if idx <= -1:
+                self._y_listbox.insert(tk.END, s)
+            else:
+                self._y_listbox.insert(idx, s)
 
     def _delete_y(self) -> None:
         """Clear the most recent selected y-data."""
         # clear the active/bottom entry in the internal data
         if 'y' in self._indices.keys():
             y_indices = list(self._y_listbox.curselection())
-
             # clear selected data
             # listbox only allows one selection
             if len(y_indices) > 0:
                 self._indices['y'].pop(y_indices[0])
                 self._y_listbox.delete(y_indices[0])
-
             # clear bottom entry
             else:
                 self._indices['y'].pop()
                 self._y_listbox.delete(self._y_listbox.size()-1)
 
-            # add default string back into table
-            if self._y_listbox.size() == 0:
-                self._y_listbox.insert(0, self._listbox_default_string)
+    def _replace_y(self, idx) -> None:
+        """Get the active table selections and replace the listbox and active y-data contents."""
+        if self._validate_active_data():
+            # update the stored y-indices
+            self._indices['y'][idx] = self._active_indices.copy()
+            # delete existing text and overwrite
+            y0 = self._indices['y'][idx][0]
+            y1 = self._indices['y'][idx][1]
+            col = self._indices['y'][idx][2]
+            s = f'col:{col+1}; row:{y0+1}-{y1}'
+            self._y_listbox.delete(idx)
+            self._y_listbox.insert(idx, s)
     
     def _validate_active_data(self) -> bool:
         """Verify the actively selected data to ensure it contains only numeric values."""
@@ -392,3 +377,50 @@ class EmbeddedTable() :
             # set canvas position, force update for scrollbar
             self._canvas.yview_moveto(thumb_pos)
             self._canvas.update_idletasks()
+
+    def _start_edit(self, event):
+        selections = list(event.widget.curselection())
+        if len(selections) > 0:
+            self.start_edit(event.widget, selections[0])
+        return "break"
+
+    def start_edit(self, lb, index):
+        self.edit_item = index
+        text = lb.get(index)
+        y0 = lb.bbox(index)[1]
+        entry = ttk.Entry(lb)
+        entry.idx = index
+        entry.insert(0, text)
+        entry.bind("<Return>", self.accept_edit)
+        entry.bind("<Escape>", self.cancel_edit)
+        entry.place(relx=0, y=y0, relwidth=1, width=-1)
+        entry.focus_set()
+        entry.grab_set()
+
+    def accept_edit(self, event):
+        try:
+            new_data = event.widget.get()
+            # split col:x;row:y0-y1
+            new_data_list = new_data.split(";")
+            # get column number
+            col = int(new_data_list[0].split(":")[1].strip())
+            # get row numbers
+            rows = new_data_list[1].split(":")[1].split("-")
+            row0 = int(rows[0].strip())
+            row1 = int(rows[1].strip())
+            # set indices to validate
+            self._active_indices = [row0-1, row1, col-1]
+            # update correct listbox
+            if event.widget.master is self._x_listbox:
+                self._reset_x()
+                self._set_x()
+            elif event.widget.master is self._y_listbox:
+                self._y_listbox.select_set(event.widget.idx)
+                self._replace_y(event.widget.idx)
+        except:
+            s = "Invalid input occurred. Please ensure the input is of the form 'col:x;row:y0-y1'."
+            tk.messagebox.showwarning(title=None, message=s)
+        event.widget.destroy()
+
+    def cancel_edit(self, event):
+        event.widget.destroy()
