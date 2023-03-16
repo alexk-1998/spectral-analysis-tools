@@ -217,12 +217,11 @@ class App(tk.Tk):
     def _continuum_band_depth(self, y_cont: np.array) -> float:
         """
         Returns the band depth.
-        Band depth is (Rc - Rb) / Rc
+        Band depth is 1 - min(y_cont)
         where Rc is the reflectance of the continuum at band centre and
         Rb is the band reflectance at band centre.
         """
-        band_centre_idx = y_cont.argmin()
-        return 1 - y_cont[band_centre_idx]
+        return 1 - y_cont.min()
 
     def _continuum_band_area(self, x: np.array, y: np.array) -> float:
         """Returns the upper area of a constrained curve."""
