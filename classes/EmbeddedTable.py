@@ -280,6 +280,7 @@ class EmbeddedTable() :
                 print("in single selection branch")
                 row_start = rows[0]
                 column = self._df.iloc[row_start:, col]
+                print(column)
                 row_end = column.isnull().idxmax()
                 print("row end:", row_end)
                 self._active_indices = [row_start, row_end, col]
