@@ -271,18 +271,23 @@ class EmbeddedTable() :
         """
         if self._df is not None:
             col = event.widget.get_index()
+            print("col:", col)
             rows = list(event.widget.curselection())
+            print("rows:", rows)
             # single-selection logic
             # selects all numeric values below until next non-numeric value
             if len(rows) == 1:
+                print("in single selection branch")
                 row_start = rows[0]
                 column = self._df.iloc[row_start:, col]
                 row_end = column.isnull().idxmax()
+                print("row end:", row_end)
                 self._active_indices = [row_start, row_end, col]
                 for i in range(row_start, row_end):
                     event.widget.select_set(i)
             # multiple-selection logic
             elif len(rows) > 1:
+                print("in multiple selection branch")
                 self._active_indices = [rows[0], rows[-1]+1, col]
 
     def _listbox_key_up(self, event) -> None:
