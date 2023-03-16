@@ -160,7 +160,7 @@ class App(tk.Tk):
                 band_fwhms.append(self._continuum_band_fwhm(x_continuum[mask], y_continuum[mask]))
                 band_minima.append(self._continuum_band_min(y_continuum[mask]))
                 band_centres.append(self._continuum_band_centre(x_continuum[mask], y_continuum[mask]))
-                band_depths.append(self._continuum_band_depth(y_raw[mask], y_continuum[mask]))
+                band_depths.append(self._continuum_band_depth(y_continuum[mask]))
                 band_areas.append(self._continuum_band_area(x_continuum[mask], y_continuum[mask]))
                 x_minima.append(x_pt_min)
                 x_maxima.append(x_pt_max)
@@ -214,7 +214,7 @@ class App(tk.Tk):
         """Returns the x-value at the minimum value of a curve."""
         return x[y.argmin()]
 
-    def _continuum_band_depth(self, y_raw: np.array, y_cont: np.array) -> float:
+    def _continuum_band_depth(self, y_cont: np.array) -> float:
         """
         Returns the band depth.
         Band depth is (Rc - Rb) / Rc
@@ -222,7 +222,7 @@ class App(tk.Tk):
         Rb is the band reflectance at band centre.
         """
         band_centre_idx = y_cont.argmin()
-        return 1 - y_raw[band_centre_idx] / y_cont[band_centre_idx]
+        return 1 - y_cont[band_centre_idx]
 
     def _continuum_band_area(self, x: np.array, y: np.array) -> float:
         """Returns the upper area of a constrained curve."""
