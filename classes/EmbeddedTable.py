@@ -165,38 +165,7 @@ class EmbeddedTable() :
             col = self._indices['x'][2]
             x_vals = self._df.iloc[x0:x1, col].to_numpy()
         return x_vals
-
-    def get_y(self) -> list:
-        """Return the currently selected y-data."""
-        y_vals = []
-        if self._df is not None and 'y' in self._indices.keys():
-            for y_index in self._indices['y']:
-                y0 = y_index[0]
-                y1 = y_index[1]
-                col = y_index[2]
-                y_vals.append(self._df.iloc[y0:y1, col].to_numpy())
-        return y_vals
     
-    def _validate_active_data(self) -> bool:
-        """Verify the actively selected data to ensure it contains only numeric values."""
-        valid = True
-        # must have correct number of indices
-        if len(self._active_indices) != self._n_req_indices:
-            valid = False
-        # verify numeric contents
-        else:
-            row_start = self._active_indices[0]
-            row_end = self._active_indices[1]
-            col = self._active_indices[2]
-            if row_end <= row_start or self._df.iloc[row_start:row_end, col].isnull().any():
-                valid = False
-        # show warning message
-        if not valid:
-            s = "An invalid selection occurred. Please ensure the selected data contains only numeric values."
-            tk.messagebox.showwarning(title=None, message=s)
-            self._active_indices = []
-        return valid
-
     def _set_x(self) -> None:
         """Get the active table selections and assign to the active x-data."""
         if self._validate_active_data():
@@ -213,6 +182,24 @@ class EmbeddedTable() :
     def _enter_x(self) -> None:
         """Get the active table selections and assign to the active x-data."""
         return "break"
+    
+    def _reset_x(self) -> None:
+        """Clear the currently selected x-data."""
+        if 'x' in self._indices.keys():
+            self._indices.pop('x')
+        self._x_listbox.delete(0, tk.END)
+        self._x_listbox.insert(0, self._listbox_default_string)
+
+    def get_y(self) -> list:
+        """Return the currently selected y-data."""
+        y_vals = []
+        if self._df is not None and 'y' in self._indices.keys():
+            for y_index in self._indices['y']:
+                y0 = y_index[0]
+                y1 = y_index[1]
+                col = y_index[2]
+                y_vals.append(self._df.iloc[y0:y1, col].to_numpy())
+        return y_vals
 
     def _add_y(self) -> None:
         """Get the active table selections and append to the active y-data."""
@@ -229,13 +216,6 @@ class EmbeddedTable() :
             # delete existing text and overwrite
             s = f'col:{col+1}; row:{y0+1}-{y1}'
             self._y_listbox.insert(tk.END, s)
-
-    def _reset_x(self) -> None:
-        """Clear the currently selected x-data."""
-        if 'x' in self._indices.keys():
-            self._indices.pop('x')
-        self._x_listbox.delete(0, tk.END)
-        self._x_listbox.insert(0, self._listbox_default_string)
 
     def _enter_y(self) -> None:
         """Get the active table selections and assign to the active x-data."""
@@ -261,32 +241,49 @@ class EmbeddedTable() :
             # add default string back into table
             if self._y_listbox.size() == 0:
                 self._y_listbox.insert(0, self._listbox_default_string)
-
-    def _scrollbar_h_click(self, event) :
+    
+    def _validate_active_data(self) -> bool:
+        """Verify the actively selected data to ensure it contains only numeric values."""
+        valid = True
+        # must have correct number of indices
+        if len(self._active_indices) != self._n_req_indices:
+            valid = False
+        # verify numeric contents
+        else:
+            row_start = self._active_indices[0]
+            row_end = self._active_indices[1]
+            col = self._active_indices[2]
+            if row_end <= row_start or self._df.iloc[row_start:row_end, col].isnull().any():
+                valid = False
+        # show warning message
+        if not valid:
+            s = "An invalid selection occurred. Please ensure the selected data contains only numeric values."
+            tk.messagebox.showwarning(title=None, message=s)
+            self._active_indices = []
+        return valid
+    
+    def _get_table_selection(self, event) -> None:
         """
-        Callback for horizontal scrollbar click.
-        Moves the scrollbar and canvas according to cursor position.
+        Get the actively selected column and column indices from the table.
+        Returns a tuple where the first element is the column index and the second
+        is a list of all active selections from within the column. The method will
+        do nothing if the selected data contains non-numeric entries.
         """
-        if self._canvas is not None:
-            # get scrollbar thumb position and width relative to canvas
-            thumb_width = event.widget.winfo_width() * self._canvas.winfo_width() / self._canvas.bbox(tk.ALL)[2]
-            thumb_pos = (event.x - 0.5 * thumb_width) / event.widget.winfo_width()
-            # set canvas position, force update for scrollbar
-            self._canvas.xview_moveto(thumb_pos)
-            self._canvas.update_idletasks()
-
-    def _scrollbar_v_click(self, event) :
-        """
-        Callback for vertical scrollbar click.
-        Moves the scrollbar and canvas according to cursor position.
-        """
-        if self._canvas is not None:
-            # get scrollbar bar position and height relative to canvas
-            thumb_height = event.widget.winfo_height() * self._canvas.winfo_height() / self._canvas.bbox(tk.ALL)[3]
-            thumb_pos = (event.y - 0.5 * thumb_height) / event.widget.winfo_height()
-            # set canvas position, force update for scrollbar
-            self._canvas.yview_moveto(thumb_pos)
-            self._canvas.update_idletasks()
+        if self._df is not None:
+            col = event.widget.get_index()
+            rows = list(event.widget.curselection())
+            # single-selection logic
+            # selects all numeric values below until next non-numeric value
+            if len(rows) == 1:
+                row_start = rows[0]
+                column = self._df.iloc[row_start:, col]
+                row_end = column.isnull().idxmax()
+                self._active_indices = [row_start, row_end, col]
+                for i in range(row_start, row_end):
+                    event.widget.select_set(i)
+            # multiple-selection logic
+            elif len(rows) > 1:
+                self._active_indices = [rows[0], rows[-1]+1, col]
 
     def _listbox_key_up(self, event) -> None:
         """Callback for listbox parsing with the up arrow key."""
@@ -364,25 +361,28 @@ class EmbeddedTable() :
             for i in range(len(self._df.columns)):
                 self._df.iloc[:, i] = pd.to_numeric(self._df.iloc[:, i], errors='coerce')
 
-    def _get_table_selection(self, event) -> None:
+    def _scrollbar_h_click(self, event) :
         """
-        Get the actively selected column and column indices from the table.
-        Returns a tuple where the first element is the column index and the second
-        is a list of all active selections from within the column. The method will
-        do nothing if the selected data contains non-numeric entries.
+        Callback for horizontal scrollbar click.
+        Moves the scrollbar and canvas according to cursor position.
         """
-        if self._df is not None:
-            col = event.widget.get_index()
-            rows = list(event.widget.curselection())
-            # single-selection logic
-            # selects all numeric values below until next non-numeric value
-            if len(rows) == 1:
-                row_start = rows[0]
-                column = self._df.iloc[row_start:, col]
-                row_end = column.isnull().idxmax()
-                self._active_indices = [row_start, row_end, col]
-                for i in range(row_start, row_end):
-                    event.widget.select_set(i)
-            # multiple-selection logic
-            elif len(rows) > 1:
-                self._active_indices = [rows[0], rows[-1]+1, col]
+        if self._canvas is not None:
+            # get scrollbar thumb position and width relative to canvas
+            thumb_width = event.widget.winfo_width() * self._canvas.winfo_width() / self._canvas.bbox(tk.ALL)[2]
+            thumb_pos = (event.x - 0.5 * thumb_width) / event.widget.winfo_width()
+            # set canvas position, force update for scrollbar
+            self._canvas.xview_moveto(thumb_pos)
+            self._canvas.update_idletasks()
+
+    def _scrollbar_v_click(self, event) :
+        """
+        Callback for vertical scrollbar click.
+        Moves the scrollbar and canvas according to cursor position.
+        """
+        if self._canvas is not None:
+            # get scrollbar bar position and height relative to canvas
+            thumb_height = event.widget.winfo_height() * self._canvas.winfo_height() / self._canvas.bbox(tk.ALL)[3]
+            thumb_pos = (event.y - 0.5 * thumb_height) / event.widget.winfo_height()
+            # set canvas position, force update for scrollbar
+            self._canvas.yview_moveto(thumb_pos)
+            self._canvas.update_idletasks()
