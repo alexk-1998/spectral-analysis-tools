@@ -126,10 +126,10 @@ class EmbeddedTable() :
             df = pd.read_csv(filename, sep=',', header=None)
         # txt file reading, use sep=None to infer text delimeter
         elif 'txt' in filename.lower():
-            df = pd.read_csv(filename, sep=None, header=None)
+            df = pd.read_csv(filename, sep=None, header=None, engine='python')
         # dpt file reading, use sep=None to infer text delimeter
         elif 'dpt' in filename.lower():
-            df = pd.read_csv(filename, sep=None, header=None)
+            df = pd.read_csv(filename, sep=None, header=None, engine='python')
         # update our existing data
         if df is not None:
             self._populate(df)
@@ -259,24 +259,21 @@ class EmbeddedTable() :
         """
         if self._df is not None:
             col = event.widget.get_index()
-            print("col:", col)
             rows = list(event.widget.curselection())
-            print("rows:", rows)
             # single-selection logic
             # selects all numeric values below until next non-numeric value
             if len(rows) == 1:
-                print("in single selection branch")
                 row_start = rows[0]
                 column = self._df.iloc[row_start:, col]
-                print(column)
                 row_end = column.isnull().idxmax()
-                print("row end:", row_end)
+                # check if the entire column is valid
+                if row_end == row_start and not any(column.iloc[row_start:row_start+1].isnull()):
+                    row_end = len(column)
                 self._active_indices = [row_start, row_end, col]
                 for i in range(row_start, row_end):
                     event.widget.select_set(i)
             # multiple-selection logic
             elif len(rows) > 1:
-                print("in multiple selection branch")
                 self._active_indices = [rows[0], rows[-1]+1, col]
 
     def _listbox_key_up(self, event) -> None:
