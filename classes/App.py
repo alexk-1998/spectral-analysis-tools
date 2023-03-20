@@ -72,7 +72,7 @@ class App(tk.Tk):
 
     def _open_file(self) -> None:
         """See EmbeddedTable.open()."""
-        allowed_types = [('Excel', '*.xlsx'), ('csv', '*.csv'), ('txt', '*.txt')]
+        allowed_types = [('Excel', '*.xlsx'), ('csv', '*.csv'), ('txt', '*.txt'), ('dpt', '*.dpt')]
         filename = tk.filedialog.askopenfilename(filetypes=allowed_types, header=None)
         if filename is not None:
             self._table.open(filename)

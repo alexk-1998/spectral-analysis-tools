@@ -127,6 +127,9 @@ class EmbeddedTable() :
         # txt file reading, use sep=None to infer text delimeter
         elif 'txt' in filename.lower():
             df = pd.read_csv(filename, sep=None, header=None)
+        # dpt file reading, use sep=None to infer text delimeter
+        elif 'dpt' in filename.lower():
+            df = pd.read_csv(filename, sep=None, header=None)
         # update our existing data
         if df is not None:
             self._populate(df)
